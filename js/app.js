@@ -314,6 +314,21 @@ function resumenSemana(pl) {
     <div class="dias">${dias}</div></div>`;
 }
 
+// Explicación plegada de cada ejercicio en Hoy (datos del catálogo y del plan, sin texto nuevo).
+function explicacionEj(e) {
+  const c = ej_[e.id];
+  if (!c) return '';
+  const img = c.imagen ? `<img class="img-ej" src="imagenes/${esc(c.imagen)}" alt="${esc(c.nombre)}" loading="lazy" onerror="this.remove()">` : '';
+  const porque = e.justificacion || c.justificacion || '';
+  return `<details class="exp"><summary><span>Cómo se hace y por qué</span>${ic('abajo')}</summary><div class="exp-cuerpo">${img}
+    ${c.descripcion ? `<p>${esc(c.descripcion)}</p>` : ''}
+    ${c.tecnica?.length ? `<h4>Técnica</h4><ul>${c.tecnica.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+    ${porque ? `<h4>Por qué está en el plan</h4><p>${esc(porque)}</p>` : ''}
+    ${c.musculos?.length ? `<div class="chips">${c.musculos.map(m => `<span class="etiqueta">${esc(m)}</span>`).join('')}</div>` : ''}
+    ${c.zonasCuidado?.length ? `<p class="cuid">Cuidado con: ${esc(c.zonasCuidado.join(', '))}.</p>` : ''}
+    <button class="b chico" data-acc="verEj" data-id="${e.id}" aria-label="Info de ${esc(c.nombre)}">${ic('info')}Info</button></div></details>`;
+}
+
 function vHoy() {
   const p = S.perfil;
   const sin = !servidorListo() ? `<div class="info">Modo local: falta la dirección o la clave del servidor (Perfil, "Servidor y datos"). Mientras tanto los datos quedan solo en este celular.</div>` : '';
@@ -326,7 +341,7 @@ function vHoy() {
   const filas = s.ejercicios.map((e, k) => {
     const sg = sugerencia(e);
     return `<li><span class="orden">${k + 1}</span><span class="nom">${esc(e.nombre)}<span class="pres">${e.series} × ${e.reps[0]}–${e.reps[1]} · RIR ${e.rir}</span></span>
-      ${sg.peso == null ? '<span class="carga def">a definir</span>' : `<span class="carga">${fmt(sg.peso)} kg</span>`}</li>`;
+      ${sg.peso == null ? '<span class="carga def">a definir</span>' : `<span class="carga">${fmt(sg.peso)} kg</span>`}${explicacionEj(e)}</li>`;
   }).join('');
   const ult = S.sesiones.slice(-1)[0];
   const pl = plan();

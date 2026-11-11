@@ -149,6 +149,20 @@ label { display: block; font-size: 14px; font-weight: 600; color: var(--suave); 
 .ejs .pres { display: block; color: var(--grafito-suave); font-size: 13.5px; font-weight: 400; margin-top: 2px; }
 .ejs .carga { font: 700 16px var(--f-num); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .ejs .carga.def { font: 500 13px var(--f-texto); color: var(--grafito-suave); }
+.ejs details.exp { grid-column: 1 / -1; margin-top: -2px; }
+.ejs details.exp > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: var(--r-chico); background: var(--grafito-2); color: var(--menta); font-weight: 650; font-size: 14.5px; cursor: pointer; }
+.ejs details.exp > summary::-webkit-details-marker { display: none; }
+.ejs details.exp > summary svg.i { width: 18px; height: 18px; flex: none; transition: transform var(--t); }
+.ejs details.exp[open] > summary svg.i { transform: rotate(180deg); }
+.exp-cuerpo { padding: 12px 2px 4px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; line-height: 1.45; color: var(--grafito-texto); min-width: 0; overflow-wrap: anywhere; }
+.exp-cuerpo p, .exp-cuerpo ul { margin: 0; }
+.exp-cuerpo h4 { margin: 4px 0 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--grafito-suave); }
+.exp-cuerpo ul { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.ejs .exp-cuerpo li { display: list-item; padding: 0; border-top: 0; }
+.exp-cuerpo .cuid { color: var(--grafito-suave); font-size: 14px; }
+.exp-cuerpo .img-ej { margin-bottom: 0; }
+.exp-cuerpo .etiqueta { background: var(--grafito-2); color: var(--menta); }
+.exp-cuerpo .b { min-height: 44px; align-self: flex-start; }
 .hero .b.principal { background: var(--menta); color: var(--menta-texto); border-color: var(--menta); }
 .hero .b.principal:active { background: color-mix(in srgb, var(--menta) 85%, #000); }
 .hero .en-curso { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--grafito-suave); }
