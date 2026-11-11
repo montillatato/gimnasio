@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a24">
+<title>Gimnasio</title>
+<style>
+:root {
+  --fondo: #f3f1ec; --tarjeta: #ffffff; --texto: #1d211e; --suave: #5f665f; --linea: #dedbd2;
+  --acento: #2f7d5b; --acento-texto: #ffffff; --acento-suave: #dcebe3;
+  --alerta: #a8372b; --alerta-suave: #f4dedb; --ok: #2f7d5b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fondo: #141816; --tarjeta: #1f2521; --texto: #eceee9; --suave: #a2aaa2; --linea: #303832;
+    --acento: #4fb286; --acento-texto: #0f1a14; --acento-suave: #23382d;
+    --alerta: #e0786b; --alerta-suave: #3a2420;
+  }
+}
+:root[data-tema="oscuro"] {
+  --fondo: #141816; --tarjeta: #1f2521; --texto: #eceee9; --suave: #a2aaa2; --linea: #303832;
+  --acento: #4fb286; --acento-texto: #0f1a14; --acento-suave: #23382d; --alerta: #e0786b; --alerta-suave: #3a2420;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--fondo); color: var(--texto); font: 17px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-x: hidden; }
+header { position: sticky; top: 0; z-index: 5; background: var(--fondo); border-bottom: 1px solid var(--linea); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+header h1 { margin: 0; font-size: 20px; }
+main { padding: 16px 16px 110px; max-width: 640px; margin: 0 auto; }
+nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--tarjeta); border-top: 1px solid var(--linea); display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+nav button { background: none; border: 0; color: var(--suave); padding: 10px 2px; font-size: 13px; min-height: 56px; position: relative; }
+nav button.activo { color: var(--acento); font-weight: 700; }
+.globo { position: absolute; top: 6px; right: 14%; background: var(--alerta); color: #fff; border-radius: 10px; font-size: 11px; min-width: 18px; padding: 0 5px; }
+h2 { font-size: 22px; margin: 4px 0 12px; }
+h3 { font-size: 18px; margin: 0 0 6px; }
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.suave { color: var(--suave); font-size: 15px; }
+.fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.fila > * { flex: 1 1 auto; }
+button.b, .b { display: block; width: 100%; min-height: 52px; border-radius: 12px; border: 1px solid var(--linea); background: var(--tarjeta); color: var(--texto); font-size: 17px; font-weight: 600; padding: 12px 14px; }
+.b.principal { background: var(--acento); color: var(--acento-texto); border-color: var(--acento); font-size: 19px; min-height: 60px; }
+.b.peligro { color: var(--alerta); border-color: var(--alerta); }
+.b.chico { min-height: 44px; font-size: 15px; width: auto; }
+.b:disabled { opacity: .5; }
+.rir button { min-height: 52px; }
+.rir .sel, .sel { background: var(--acento); color: var(--acento-texto); border-color: var(--acento); }
+input, select, textarea { width: 100%; min-height: 48px; font: inherit; color: var(--texto); background: var(--fondo); border: 1px solid var(--linea); border-radius: 10px; padding: 10px 12px; }
+textarea { min-height: 110px; }
+label { display: block; font-size: 14px; color: var(--suave); margin: 10px 0 4px; }
+.num { display: grid; grid-template-columns: 56px 1fr 56px; gap: 6px; align-items: center; }
+.num input { text-align: center; font-size: 24px; font-weight: 700; }
+.num button { min-height: 52px; font-size: 24px; padding: 0; }
+.serie { display: flex; justify-content: space-between; border-bottom: 1px solid var(--linea); padding: 6px 0; font-size: 16px; }
+.etiqueta { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--acento-suave); color: var(--acento); font-size: 13px; font-weight: 600; }
+.etiqueta.pend { background: var(--alerta-suave); color: var(--alerta); }
+.aviso { background: var(--alerta-suave); color: var(--alerta); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 15px; }
+.temporizador { position: fixed; left: 16px; right: 16px; bottom: 74px; background: var(--acento); color: var(--acento-texto); border-radius: 14px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 22px; font-weight: 700; z-index: 6; }
+.temporizador button { background: transparent; border: 1px solid currentColor; color: inherit; border-radius: 10px; font-size: 15px; padding: 8px 12px; }
+.barra { height: 10px; background: var(--linea); border-radius: 6px; overflow: hidden; }
+.barra > div { height: 100%; background: var(--acento); }
+svg.lin { width: 100%; height: 120px; }
+.img-ej { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; background: var(--fondo); }
+ul { padding-left: 20px; margin: 6px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="titulo">Gimnasio</h1>
+  <div class="fila" style="flex:0 0 auto">
+    <span class="suave" id="quien"></span>
+    <button class="b chico" id="btnPerfil">Perfil</button>
+  </div>
+</header>
+<main id="vista"></main>
+<div id="temp-contenedor"></div>
+<nav id="nav">
+  <button data-v="hoy">Hoy</button>
+  <button data-v="comida">Comida</button>
+  <button data-v="progreso">Progreso</button>
+  <button data-v="entrenador">Entrenador</button>
+  <button data-v="buzon">Buzón</button>
+</nav>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
