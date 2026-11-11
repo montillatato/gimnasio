@@ -7,6 +7,7 @@ import { PLANES } from './planes.js';
 const CLAVE_CACHE = 'gimnasio_cache_v1';
 const CLAVE_API = 'gimnasio_api_url';
 const CLAVE_SRV = 'gimnasio_api_clave'; // solo en este celular; nunca en el código ni en la hoja
+const CLAVE_USR = 'gym_usuario';
 const USUARIOS = { 'USR-001': 'Tato', 'USR-002': 'Lau' };
 const ej_ = Object.fromEntries(CATALOGO.map(e => [e.id, e]));
 
@@ -25,11 +26,30 @@ let S = {
 let UI = { panel: null, activo: 0, resultadoComida: null, ejProgreso: null, msg: '' };
 let temp = { restante: 0, total: 0, id: null };
 
-function cargarCache() {
+function usuarioGuardado() {
+  try { const u = localStorage.getItem(CLAVE_USR); return USUARIOS[u] ? u : ''; } catch (e) { return ''; }
+}
+function guardarUsuario(u) { try { localStorage.setItem(CLAVE_USR, u); } catch (e) { /* sin almacenamiento */ } }
+// Carga la caché solo si es del usuario elegido; si es de otra persona, empieza vacío (no se borra la caché ajena hasta que se guarde).
+function cargarCache(usuario) {
   try {
     const c = JSON.parse(localStorage.getItem(CLAVE_CACHE) || 'null');
-    if (c && c.usuario) S = { ...S, ...c, vista: 'hoy' };
-  } catch (e) { /* sin caché: se sigue igual */ }
+    if (c && c.usuario && (!usuario || c.usuario === usuario)) S = { ...S, ...c, vista: 'hoy' };
+    else if (usuario) S = { ...S, usuario };
+  } catch (e) { if (usuario) S = { ...S, usuario }; }
+}
+// Pantalla de primer uso: se muestra hasta que se elige quién usa el celular.
+function pantallaQuien(alElegir) {
+  const d = document.createElement('div');
+  d.id = 'pantalla-quien';
+  d.style.cssText = 'position:fixed;inset:0;z-index:50;background:var(--fondo);color:var(--texto);display:flex;flex-direction:column;justify-content:center;gap:16px;padding:16px;overflow-x:hidden';
+  d.innerHTML = '<h2 style="text-align:center;margin:0 0 8px">¿Quién sos?</h2>' +
+    Object.keys(USUARIOS).map(u => `<button class="b principal" data-usr="${u}" style="min-height:96px;font-size:24px">${esc(USUARIOS[u])}</button>`).join('');
+  d.addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-usr]'); if (!b) return;
+    d.remove(); alElegir(b.dataset.usr);
+  });
+  document.body.appendChild(d);
 }
 function guardarCache() {
   try { localStorage.setItem(CLAVE_CACHE, JSON.stringify(S)); } catch (e) { /* caché no disponible */ }
@@ -576,6 +596,7 @@ document.addEventListener('change', (ev) => {
   const el = ev.target;
   if (el.id === 'selUsuario') {
     leerPerfilForm(); guardarCache();
+    guardarUsuario(el.value);
     S = { ...S, usuario: el.value, perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [], buzon: [], cola: [], sesion: null };
     sincronizar(); render();
   }
@@ -585,7 +606,12 @@ $('#nav').addEventListener('click', (ev) => { const b = ev.target.closest('butto
 $('#btnPerfil').addEventListener('click', () => ir('perfil'));
 
 // ---------- Inicio ----------
-cargarCache();
-render();
-sincronizar();
+function arrancar(usuario) {
+  cargarCache(usuario);
+  render();
+  sincronizar();
+}
+const usrInicial = usuarioGuardado();
+if (usrInicial) arrancar(usrInicial);
+else pantallaQuien((u) => { guardarUsuario(u); arrancar(u); });
 if (S.sesion) { /* sesión en curso recuperada de la caché */ }
