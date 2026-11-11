@@ -219,7 +219,7 @@ function render() {
     if (b.dataset.v === 'buzon' && respuestasSinLeer()) b.insertAdjacentHTML('beforeend', `<span class="globo">${respuestasSinLeer()}</span>`);
   });
   const f = { hoy: vHoy, sesion: vSesion, ejercicio: vEjercicio, comida: vComida, progreso: vProgreso, entrenador: vEntrenador, buzon: vBuzon, perfil: vPerfil }[v];
-  const aviso = (UI.msg ? `<div class="aviso">${esc(UI.msg)}</div>` : '') + (S.cola.length && servidorListo() ? `<p class="suave">${S.cola.length} cambio(s) sin enviar.</p>` : '');
+  const aviso = (UI.msg ? `<div class="${/error|no se pudo|no autorizado|falló|falla/i.test(UI.msg) ? 'aviso' : /guardad|listo|conectad|enviad/i.test(UI.msg) ? 'ok' : 'info'}">${esc(UI.msg)}</div>` : '') + (S.cola.length && servidorListo() ? `<p class="suave">${S.cola.length} cambio(s) sin enviar.</p>` : '');
   $('#vista').innerHTML = aviso + f();
   guardarCache();
 }
@@ -232,7 +232,7 @@ function ir(v) {
 
 function vHoy() {
   const p = S.perfil;
-  const sin = !servidorListo() ? `<div class="aviso">Modo local: falta la dirección o la clave del servidor (Perfil, "Servidor y datos"). Mientras tanto los datos quedan solo en este celular.</div>` : '';
+  const sin = !servidorListo() ? `<div class="info">Modo local: falta la dirección o la clave del servidor (Perfil, "Servidor y datos"). Mientras tanto los datos quedan solo en este celular.</div>` : '';
   if (!p.nombre) return sin + `<div class="tarjeta"><h3>Empecemos por tu perfil</h3><p class="suave">Con tu objetivo, tus días y tus molestias armamos el plan.</p><button class="b principal" data-acc="ir" data-v="perfil">Completar perfil</button></div>`;
   const s = sesionDelDia();
   if (!s) return sin + '<p>No hay plan. Revisá el perfil.</p>';
@@ -293,7 +293,7 @@ function alternativa(e) {
 }
 function panelGusta(e) {
   const a = alternativa(e);
-  if (!a) return `<div class="aviso" style="margin-top:12px">No hay una alternativa válida del mismo patrón. Anotalo en el Buzón para que el entrenador la revise.</div>`;
+  if (!a) return `<div class="info" style="margin-top:12px">No hay una alternativa válida del mismo patrón. Anotalo en el Buzón para que el entrenador la revise.</div>`;
   return `<div class="tarjeta" style="margin-top:12px"><b>Alternativa propuesta</b><h3>${esc(a.nombre)}</h3><p class="suave">${esc(a.justificacion)}</p>
     <div class="fila"><button class="b principal" data-acc="aceptaAlt" data-i="${UI.panel.i}">Aceptar</button><button class="b" data-acc="cierraPanel">Rechazar</button></div></div>`;
 }
@@ -385,7 +385,7 @@ function vEntrenador() {
   const ent = p.fuente === 'entrenador';
   const li = (xs) => `<ul>${xs.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
   return `<p class="suave">${ent ? `Plan del entrenador (${esc(p.estado)}). Cada ejercicio lleva su motivo.` : 'No hay plan del entrenador para este usuario: plan base automático según tu perfil.'} El entrenador lo ajusta con tus datos reales.</p>
-    ${p.avisos.length ? `<div class="aviso">${p.avisos.map(esc).join('<br>')}</div>` : ''}
+    ${p.avisos.length ? `<div class="info">${p.avisos.map(esc).join('<br>')}</div>` : ''}
     ${ent && p.aValidar.length ? `<div class="tarjeta"><h3>A validar</h3>${li(p.aValidar)}</div>` : ''}
     ${ent && p.notas.length ? `<div class="tarjeta"><h3>Criterio del plan</h3>${li(p.notas)}</div>` : ''}
     ${ent && p.cardio.length ? `<div class="tarjeta"><h3>Cardio (sesiones aparte)</h3>${p.cardio.map(c => `<div class="serie" style="display:block"><b>${esc(c.dia)}: ${esc(ej_[c.id] ? ej_[c.id].nombre : c.id)}</b>
