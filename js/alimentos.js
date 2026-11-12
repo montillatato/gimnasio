@@ -35,7 +35,7 @@ const BASE = [
   ['pavo_fiambre', 'Fiambre de pavo', 15.3, 147, 'BEDCA 2286: Pavo, fiambre', { sin: ['fiambre de pavo', 'pavo en lonchas', 'lonchas de pavo', 'pechuga de pavo en lonchas', 'jamon de pavo'], porcion: 45, medidas: { loncha: 15 } }],
   // Carnes
   ['ternera', 'Carne de ternera asada', 29.5, 221, 'BEDCA 989: Ternera, parte s/e, asada', { sin: ['ternera', 'carne', 'carne de vaca', 'carne vacuna', 'carne de ternera', 'carne asada', 'carne a la plancha', 'filete', 'filete de ternera', 'bistec', 'bife', 'bife de chorizo', 'churrasco', 'entrecot', 'vacio', 'entrana', 'nalga', 'cuadril', 'peceto'], porcion: 150, unidad: 150 }],
-  ['solomillo', 'Solomillo de ternera asado', 28.4, 156, 'BEDCA 984: Ternera, solomillo, asado', { sin: ['solomillo', 'solomillo de ternera', 'lomo de ternera', 'lomo vacuno'], porcion: 150, unidad: 150 }],
+  ['solomillo', 'Solomillo de ternera asado', 28.4, 156, 'BEDCA 984: Ternera, solomillo, asado', { sin: ['solomillo', 'solomillo de ternera', 'lomo de ternera', 'lomo vacuno', 'bife de lomo'], porcion: 150, unidad: 150 }],
   ['ternera_magra_cruda', 'Ternera magra (cruda, para recetas)', 20.2, 109, 'BEDCA 1029: Ternera, solomillo, sin grasa, crudo', {}],
   ['ternera_cruda', 'Ternera con grasa (cruda, para recetas)', 16.7, 254, 'BEDCA 2315: Ternera, parte sin especificar, cruda, con grasa separable', {}],
   ['costilla_ternera_cruda', 'Costilla de ternera (cruda, para recetas)', 20, 140, 'BEDCA 1030: Ternera, costilla, cruda', {}],
@@ -80,7 +80,7 @@ const BASE = [
   ['pan', 'Pan blanco de barra', 8.3, 239, 'BEDCA 2160: Pan blanco, de barra', { sin: ['pan', 'pan blanco', 'pan de barra', ['barra de pan', 250], 'baguette', 'pan frances', 'pan casero', 'pan de pueblo', 'chapata'], porcion: 60, unidad: 60, medidas: { rebanada: 30 } }],
   ['pan_integral', 'Pan integral', 10.9, 250, 'BEDCA 2163: Pan integral', { sin: ['pan integral', 'pan multicereal'], porcion: 60, unidad: 60, medidas: { rebanada: 30 } }],
   ['pan_molde', 'Pan de molde', 7.3, 248, 'BEDCA 2161: Pan blanco, de molde, tostado', { sin: ['pan de molde', 'pan lactal', 'pan de sandwich'], porcion: 50, unidad: 25, medidas: { rebanada: 25 } }],
-  ['pan_tostado', 'Tostada de pan', 10.1, 304, 'BEDCA 2165: Pan blanco, tostado', { sin: ['tostada', 'pan tostado', 'biscote'], porcion: 40, unidad: 40 }],
+  ['pan_tostado', 'Tostada de pan', 10.1, 304, 'BEDCA 2165: Pan blanco, tostado', { sin: ['tostada', 'pan tostado', 'biscote', 'tostada de pan', 'tostada de pan integral', 'tostada integral'], porcion: 40, unidad: 40 }],
   ['pan_rallado', 'Pan rallado (para recetas)', 8.5, 258, 'BEDCA 2171: Pan rallado', {}],
   ['pan_hamburguesa', 'Pan de hamburguesa', 7.5, 265, 'BEDCA 2174: Pan, tipo hamburguesa', { sin: ['pan de hamburguesa', 'pan de perrito', 'pan de pancho'], porcion: 60, unidad: 60 }],
   ['croissant', 'Croissant', 7.5, 406, 'BEDCA 2669: Croissant', { sin: ['croissant', 'cruasan'], porcion: 50, unidad: 50 }],
@@ -98,7 +98,7 @@ const BASE = [
   ['maiz_seco', 'Maíz en grano seco (para recetas)', 8.4, 390, 'BEDCA 1114: Maíz, en mazorca, crudo', {}],
   // Platos preparados de BEDCA
   ['pizza', 'Pizza precocinada', 8.2, 210, 'BEDCA 2589: Pizza, precocinada', { sin: ['pizza', 'pizza congelada', 'pizza precocinada'], porcion: 120, unidad: 400, medidas: { porcion: 120 } }],
-  ['empanada_gallega', 'Empanada gallega', 21.9, 298, 'BEDCA 2620: Empanada de carne', { sin: ['empanada gallega'], porcion: 150 }],
+  ['empanada_gallega', 'Empanada gallega', 21.9, 298, 'BEDCA 2620: Empanada de carne', { sin: ['empanada gallega', 'empanada de atun'], porcion: 150 }],
   ['empanadilla', 'Empanadilla', 4.8, 247, 'BEDCA 2619: Empanadilla', { sin: ['empanadilla'], porcion: 80, unidad: 40 }],
   ['lasana', 'Lasaña', 6.3, 137, 'BEDCA 2604: Lasaña', { sin: ['lasana', 'lasagna'], porcion: 300 }],
   ['paella', 'Paella', 12.4, 172, 'BEDCA 2597: Paella', { sin: ['paella'], porcion: 300 }],
@@ -138,7 +138,7 @@ const BASE = [
   ['pure', 'Puré de patata', 2.2, 94, 'BEDCA 887: Puré, de patata, con leche', { sin: ['pure', 'pure de patata', 'pure de papa'], porcion: 200 }],
   ['boniato', 'Boniato o batata', 1.2, 101, 'BEDCA 731: Boniato, crudo', { sin: ['boniato', 'batata', 'camote'], porcion: 200, unidad: 200, estimado: true, nota: 'Valor del boniato crudo; asado concentra un poco más las calorías.' }],
   ['calabaza_cruda', 'Calabaza (cruda, para recetas)', 1.2, 32, 'BEDCA 2378: Calabaza, cruda', {}],
-  ['calabaza', 'Calabaza hervida', 0.6, 12, 'BEDCA 1183: Calabaza, hervida', { sin: ['calabaza', 'zapallo'], porcion: 200 }],
+  ['calabaza', 'Calabaza hervida', 0.6, 12, 'BEDCA 1183: Calabaza, hervida', { sin: ['calabaza', 'zapallo', 'pure de calabaza', 'pure de zapallo'], porcion: 200 }],
   ['calabacin', 'Calabacín', 1.8, 17, 'BEDCA 2376: Calabacín', { sin: ['calabacin', 'zapallito', 'zucchini'], porcion: 150 }],
   ['brocoli', 'Brócoli hervido', 3.1, 24, 'BEDCA 2372: Brécol, hervido', { sin: ['brocoli', 'brecol'], porcion: 150 }],
   ['espinacas', 'Espinacas hervidas', 2.4, 22, 'BEDCA 2395: Espinaca, hervida', { sin: ['espinaca'], porcion: 150 }],
@@ -178,7 +178,7 @@ const BASE = [
   ['chocolate', 'Chocolate con leche', 9.2, 536, 'BEDCA 2651: Chocolate con leche', { sin: ['chocolate', 'chocolate con leche'], porcion: 20, medidas: { onza: 6 } }],
   ['chocolate_negro', 'Chocolate negro', 4.7, 541, 'BEDCA 788: Chocolate, negro', { sin: ['chocolate negro', 'chocolate amargo'], porcion: 20, medidas: { onza: 6 } }],
   ['crema_cacao', 'Crema de cacao con avellanas', 5.4, 541, 'BEDCA 783: Crema de chocolate con avellanas', { sin: ['crema de cacao', 'crema de chocolate', 'nocilla', 'nutella'], porcion: 15, medidas: { cucharada: 15 } }],
-  ['helado', 'Helado', 3.9, 210, 'BEDCA 2489: Helado de nata', { sin: ['helado'], porcion: 100, medidas: { bola: 60 } }],
+  ['helado', 'Helado', 3.9, 210, 'BEDCA 2489: Helado de nata', { sin: ['helado', 'helado de chocolate', 'helado de vainilla', 'helado de fresa', 'helado de dulce de leche'], porcion: 100, medidas: { bola: 60 } }],
   // Bebidas
   ['cafe', 'Café solo', 0.1, 2, 'BEDCA 2433: Café, infusión', { sin: ['cafe', 'cafe solo', 'espresso', 'expreso', 'cafe americano', 'americano'], porcion: 100 }],
   ['cafe_con_leche', 'Café con leche', 1.7, 38, 'BEDCA 681: Café, con leche', { sin: ['cafe con leche', 'cortado', 'cafe cortado', 'lagrima'], porcion: 200 }],
@@ -214,7 +214,7 @@ const RECETAS = [
   // Platos argentinos
   ['milanesa', 'Milanesa de carne', 130, [['ternera_magra_cruda', 120], ['pan_rallado', 20], ['huevo_crudo', 15], ['aceite_girasol', 10]], { sin: ['milanesa', 'milanesa de carne', 'milanesa de ternera', 'milanesa frita', 'escalope', 'escalope de ternera', 'filete empanado', 'filete rebozado'], unidad: 130, nota: 'Frita: absorbe unos 10 g de aceite. Al horno tiene unas 80 kcal menos.' }],
   ['milanesa_pollo', 'Milanesa de pollo', 130, [['pechuga_pollo_cruda', 120], ['pan_rallado', 20], ['huevo_crudo', 15], ['aceite_girasol', 10]], { sin: ['milanesa de pollo', 'escalope de pollo', 'pechuga empanada', 'pechuga rebozada'], unidad: 130, nota: 'Frita: absorbe unos 10 g de aceite. Al horno tiene unas 80 kcal menos.' }],
-  ['empanada_carne', 'Empanada de carne', 80, [['harina_trigo', 25], ['mantequilla', 5], ['carne_picada_cruda', 30], ['cebolla', 15], ['huevo', 5], ['aceite_girasol', 2]], { sin: ['empanada', 'empanada de carne', 'empanada criolla', 'empanada saltena', 'empanada tucumana'], unidad: 80, nota: 'Al horno. Frita suma unas 60 kcal.' }],
+  ['empanada_carne', 'Empanada de carne', 80, [['harina_trigo', 25], ['mantequilla', 5], ['carne_picada_cruda', 30], ['cebolla', 15], ['huevo', 5], ['aceite_girasol', 2]], { sin: ['empanada', 'empanada de carne', 'empanada criolla', 'empanada saltena', 'empanada tucumana', 'empanada de pollo'], unidad: 80, nota: 'Al horno. Frita suma unas 60 kcal.' }],
   ['empanada_humita', 'Empanada de humita', 80, [['harina_trigo', 27], ['mantequilla', 5], ['maiz_dulce', 30], ['leche', 10], ['cebolla', 10], ['queso_tierno', 5]], { sin: ['empanada de humita', 'empanada de choclo'], unidad: 80, nota: 'Al horno. El choclo es un dato estimado (no está en BEDCA).' }],
   ['empanada_jyq', 'Empanada de jamón y queso', 80, [['harina_trigo', 25], ['mantequilla', 5], ['jamon_cocido', 20], ['mozzarella', 20]], { sin: ['empanada de jamon y queso'], unidad: 80, nota: 'Al horno.' }],
   ['asado', 'Asado de tira', 180, [['costilla_ternera_cruda', 250]], { sin: ['asado', 'asado de tira', 'tira de asado', 'costillar', 'costilla de ternera', 'parrillada'], nota: 'Porción de 250 g crudos sin hueso; pierde un 30% de peso en la parrilla.' }],
@@ -358,16 +358,17 @@ function analizarParte(norm, orig, ini, fin) {
       const g = tipo === 'unidad' ? gUnidad : (a.medidas[tipo] ?? (tipo === 'porcion' ? a.porcionG : (tipo === 'loncha' || tipo === 'rebanada' ? gUnidad : MEDIDA_GENERAL[tipo] ?? a.porcionG)));
       return [n * g, `${r1(n)} ${med} (${Math.round(n * g)} g)`];
     };
+    const contar = (n) => [n * gUnidad, `${r1(n)} ${(sin.gUnidad || a.unidadG) ? (n === 1 ? 'unidad' : 'unidades') : (n === 1 ? 'porción' : 'porciones')} (${Math.round(n * gUnidad)} g)`];
     if (pre) {
       const n = numero(pre[1]);
       if (n > 0) {
-        [gramos, cantidad] = pre[2] ? conMedida(n, pre[2]) : [n * gUnidad, `${r1(n)} ${(sin.gUnidad || a.unidadG) ? (n === 1 ? 'unidad' : 'unidades') : (n === 1 ? 'porción' : 'porciones')} (${Math.round(n * gUnidad)} g)`];
+        [gramos, cantidad] = pre[2] ? conMedida(n, pre[2]) : contar(n);
         dIni = previo + pre.index + (pre[0].match(/^[^a-z0-9]/) ? 1 : 0);
       }
     }
     if (!gramos && suf) {
-      if (suf[1]) { const n = parseFloat(suf[1]); gramos = n * gUnidad; cantidad = `${r1(n)} ${n === 1 ? 'unidad' : 'unidades'} (${Math.round(gramos)} g)`; }
-      else [gramos, cantidad] = conMedida(parseFloat(suf[2]), suf[3].replace(/s$/, '') === 'kilo' ? 'kilo' : suf[3]);
+      if (suf[1]) [gramos, cantidad] = contar(parseFloat(suf[1]));
+      else [gramos, cantidad] = conMedida(parseFloat(suf[2]), suf[3]);
       dFin = hasta + suf[0].length;
     }
     if (!gramos) { gramos = sin.gUnidad || a.porcionG; cantidad = `${sin.gUnidad ? '1 unidad' : 'porción típica'} (${gramos} g)`; }

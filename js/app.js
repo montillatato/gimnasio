@@ -4,6 +4,7 @@ import { generarPlan, sugerirProgresion, estimarRM, evaluarDia, incremento, decr
 import { CATALOGO, ZONAS } from './catalogo.js';
 import { PLANES } from './planes.js';
 import { NUTRICION } from './nutricion.js';
+import { estimarComida, estimarDia, normalizar } from './alimentos.js';
 import { PERFIL_BASE, perfilCompleto, perfilParaServidor, perfilDesdeServidor, decidirPerfil } from './perfil.js';
 
 const CLAVE_CACHE = 'gimnasio_cache_v1';
@@ -490,9 +491,30 @@ const CHEQUEO = {
   proteina: ['suficiente', 'justa', 'faltante'], verduras: ['suficiente', 'faltante'], carbohidratos: ['acorde', 'sobra', 'falta'],
   grasas: ['acorde', 'excede'], ultraprocesados: ['pocos', 'algunos', 'muchos'], agua: ['suficiente', 'faltante']
 };
+// Estimación de proteína y calorías de cada comida (alimentos.js). Orientativa; se muestra en gris, sin rojo.
+const comidasDeHoy = () => S.comidas.filter(c => String(c.fecha).slice(0, 10) === hoyStr());
+function lineaEstimado(e) {
+  const est = e.reconocidos.length ? `Estimado: ${fmt(e.proteinaG)} g de proteína y ${fmt(e.kcal)} kcal` : '';
+  const no = e.noReconocidos.length ? `No pude estimar: ${e.noReconocidos.join(', ')}` : '';
+  return est || no ? `<span class="suave" style="display:block;font-size:13.5px;margin-top:2px">${esc([est, no].filter(Boolean).join('. '))}.</span>` : '';
+}
+// Avisa en la hoja Alertas los alimentos que la tabla no reconoce: solo el nombre, una vez por alimento y por día.
+function alertarNoReconocidos(nombres) {
+  const hoy = hoyStr(), pre = 'alimento sin reconocer|';
+  S.alertas = S.alertas.filter(k => !k.startsWith(pre) || k.endsWith('|' + hoy)); // las de días anteriores ya no hacen falta
+  for (const n of nombres) {
+    const nombre = normalizar(n).replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').slice(0, 4).join(' ').slice(0, 40);
+    if (!nombre) continue;
+    const k = pre + nombre + '|' + hoy;
+    if (S.alertas.includes(k)) continue;
+    S.alertas.push(k);
+    enviar('alerta', { fecha: ahora(), tipo: 'alimento sin reconocer', detalle: nombre });
+  }
+}
 function vComida() {
-  const hoy = S.comidas.filter(c => String(c.fecha).slice(0, 10) === hoyStr());
+  const hoy = comidasDeHoy();
   const kcal = hoy.reduce((a, c) => a + num(c.calorias), 0);
+  const dia = estimarDia(hoy);
   const r = UI.resultadoComida;
   return `${tarjetaNutricion()}<div class="tarjeta"><h3>¿Qué comiste?</h3>
     <label for="cTexto">Descripción</label><textarea id="cTexto" placeholder="Ej: almuerzo, milanesa de pollo con ensalada"></textarea>
@@ -504,7 +526,8 @@ function vComida() {
     <div style="height:16px"></div><button class="b principal" data-acc="evaluar">Guardar y evaluar</button></div>
     ${r ? resultadoComida(r) : ''}
     <div class="seccion-tit"><h3>Hoy</h3>${kcal ? `<span class="suave n">${fmt(kcal)} kcal cargadas</span>` : ''}</div>
-    ${hoy.length ? `<div class="tarjeta lista-simple">${hoy.map(c => `<div class="it"><span>${c.horario ? `<span class="hora">${esc(c.horario)}</span>` : ''}${esc(c.texto)}</span><span class="kcal">${c.calorias ? fmt(c.calorias) + ' kcal' : ''}</span></div>`).join('')}</div>`
+    ${hoy.length ? `<div class="tarjeta lista-simple">${hoy.map((c, i) => `<div class="it"><span>${c.horario ? `<span class="hora">${esc(c.horario)}</span>` : ''}${esc(c.texto)}${lineaEstimado(dia.comidas[i])}</span><span class="kcal">${c.calorias ? fmt(c.calorias) + ' kcal' : ''}</span></div>`).join('')}</div>
+      ${dia.proteinaG || dia.kcal ? `<p class="suave" style="font-size:13.5px;margin:4px 2px 0">Estimado del día: ${fmt(dia.proteinaG)} g de proteína y ${fmt(dia.kcal)} kcal. Es orientativo: usa porciones típicas cuando no escribís la cantidad (por ejemplo, "150 g de pollo" o "2 huevos").</p>` : ''}`
       : '<p class="suave" style="margin:0 2px">Todavía no cargaste comidas hoy.</p>'}
     <p class="suave" style="font-size:13.5px;margin:4px 2px 0">La evaluación es orientativa. Si tenés una condición médica, consultá con una nutricionista deportóloga.</p>`;
 }
@@ -526,6 +549,7 @@ function resultadoComida(r) {
   const acc = (r.acciones || []).filter(Boolean);
   return `<div class="tarjeta resultado res-${estado}"><div class="res-cab"><span class="ilus">${ic(cab[1])}</span><div><span>Con tu objetivo</span><h3>${cab[0]}</h3></div></div>
     <p style="margin:0">${esc(r.resumen)}</p>
+    ${r.proteinaEstimada ? `<p class="suave" style="margin:0;font-size:13.5px">La proteína (${fmt(r.proteinaEstimada)} g) se estimó con lo que cargaste hoy. Es orientativa; si sabés el número, escribilo en "Proteína del día".</p>` : ''}
     ${grupos ? `<div class="grupos">${grupos}</div>` : ''}
     ${acc.length ? `<div><span class="ceja">Qué hacer</span><ol class="acciones">${acc.map(a => `<li><span>${esc(mayusc(a))}</span></li>`).join('')}</ol></div>` : ''}</div>`;
 }
@@ -818,10 +842,14 @@ const ACC = {
     if (texto) {
       const c = { fecha: ahora(), horario: $('#cHora').value, texto, calorias: num($('#cKcal').value) || '' };
       S.comidas.push(c); enviar('comida', c);
+      alertarNoReconocidos(estimarComida(texto).noReconocidos);
     }
-    const r = evaluarDia(estados, S.perfil.tono, { usuario: S.usuario, perfil: S.perfil, objetivo: S.perfil.objetivo, pesoKg: num(S.perfil.peso_kg), proteinaG: num($('#cProteina')?.value),
+    // Proteína: la escrita manda; si el campo está vacío y no se marcó proteína en el chequeo, se usa la estimada del día.
+    let proteinaG = num($('#cProteina')?.value), proteinaEstimada = 0;
+    if (!proteinaG && !estados.proteina) { proteinaEstimada = estimarDia(comidasDeHoy()).proteinaG; proteinaG = proteinaEstimada; }
+    const r = evaluarDia(estados, S.perfil.tono, { usuario: S.usuario, perfil: S.perfil, objetivo: S.perfil.objetivo, pesoKg: num(S.perfil.peso_kg), proteinaG,
       kcal: num($('#cKcal').value), kcalMantenimiento: num(S.perfil.kcal_mantenimiento) });
-    UI.resultadoComida = r;
+    UI.resultadoComida = proteinaEstimada && r.datos.proteinaGkg !== undefined ? { ...r, proteinaEstimada } : r;
     if (Object.keys(estados).length) {
       const ev = { fecha: ahora(), en_linea: r.enLinea ? 'sí' : 'no', estados, resumen: r.resumen };
       S.evaluaciones.push(ev); enviar('evaluacion', ev);
