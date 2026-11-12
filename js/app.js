@@ -3,6 +3,7 @@
 import { generarPlan, sugerirProgresion, estimarRM, evaluarDia, incremento, decremento, proponerAlternativa, estimarDuracion } from './motor.js';
 import { CATALOGO, ZONAS } from './catalogo.js';
 import { PLANES } from './planes.js';
+import { PERFIL_BASE, perfilCompleto, perfilParaServidor, perfilDesdeServidor, decidirPerfil } from './perfil.js';
 
 const CLAVE_CACHE = 'gimnasio_cache_v1';
 const CLAVE_API = 'gimnasio_api_url';
@@ -12,16 +13,10 @@ const USUARIOS = { 'USR-001': 'Tato', 'USR-002': 'Lau' };
 const ej_ = Object.fromEntries(CATALOGO.map(e => [e.id, e]));
 
 // ---------- Estado ----------
-const PERFIL_BASE = {
-  nombre: '', fecha_nacimiento: '', sexo: '', altura_cm: '', peso_kg: '', grasa_pct: '', experiencia: '6-24 meses',
-  objetivo: 'hipertrofia', objetivo_texto: '', objetivo_secundario: '', dias: 3, duracion_min: 75,
-  lesiones: [], limitaciones: '', no_gustan: [], duelen: [], tono: 'neutro', mail_avisos: '', unidad: 'kg',
-  chequeo_medico: 'no', chequeo_fecha: '', kcal_mantenimiento: ''
-};
 
 let S = {
   usuario: 'USR-001', perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [],
-  buzon: [], cola: [], alertas: [], sesion: null, vista: 'hoy', previa: 'hoy', ejId: null, enviando: false
+  buzon: [], buzonOtros: [], cola: [], alertas: [], sesion: null, vista: 'hoy', previa: 'hoy', ejId: null, enviando: false
 };
 let UI = { panel: null, activo: 0, resultadoComida: null, ejProgreso: null, msg: '' };
 let temp = { restante: 0, total: 0, id: null };
@@ -52,6 +47,9 @@ function pantallaQuien(alElegir) {
   });
   document.body.appendChild(d);
 }
+// Fecha del último guardado del perfil en este celular (una por usuario). Sirve para decidir quién gana al sincronizar.
+function fechaPerfil(usuario) { try { return localStorage.getItem('gimnasio_perfil_guardado_' + usuario) || ''; } catch (e) { return ''; } }
+function guardarFechaPerfil(usuario, iso) { try { localStorage.setItem('gimnasio_perfil_guardado_' + usuario, iso); } catch (e) { /* sin almacenamiento */ } }
 function guardarCache() {
   try { localStorage.setItem(CLAVE_CACHE, JSON.stringify(S)); } catch (e) { /* caché no disponible */ }
 }
@@ -138,6 +136,7 @@ function plan() {
 
 // ---------- Backend ----------
 async function enviar(accion, datos) {
+  if (accion === 'perfil') guardarFechaPerfil(S.usuario, ahora());
   S.cola.push({ accion, datos });
   guardarCache();
   vaciarCola();
@@ -161,11 +160,13 @@ async function sincronizar() {
   if (S.cola.length) return; // no se pisa lo local mientras haya envíos pendientes
   try {
     const d = await llamar('leer', { que: 'todo' });
-    if (d.perfil && (d.perfil.objetivo || d.perfil.nombre)) {
-      S.perfil = { ...PERFIL_BASE, ...d.perfil, lesiones: lista(d.perfil.lesiones), no_gustan: lista(d.perfil.no_gustan), duelen: lista(d.perfil.duelen) };
-    }
+    // El perfil del servidor solo pisa al local si tiene datos reales y es más nuevo; si el local tiene datos y el servidor no, se sube el local.
+    const dec = decidirPerfil(S.perfil, d.perfil, fechaPerfil(S.usuario));
+    if (dec === 'reemplazar') { S.perfil = perfilDesdeServidor(d.perfil); guardarFechaPerfil(S.usuario, d.perfil.actualizado || ahora()); }
+    else if (dec === 'enviar') enviar('perfil', perfilPlano());
     S.sesiones = d.sesiones || []; S.series = d.series || []; S.comidas = d.comidas || [];
     S.evaluaciones = d.evaluaciones || []; S.buzon = d.buzon || [];
+    S.buzonOtros = S.usuario === 'USR-001' ? (d.buzon_otros || []) : [];
     UI.msg = '';
     guardarCache(); render();
   } catch (e) { UI.msg = 'No se pudo actualizar desde el servidor. Se muestran los datos guardados.'; render(); }
@@ -217,6 +218,9 @@ function cardioNom(c) { return ej_[c.id] ? ej_[c.id].nombre : c.id; }
 function cardioDetalle(c) { return cardioNom(c).toLowerCase().includes(cardioInt(c).toLowerCase()) ? esc(cardioDur(c)) : cardioLinea(c); }
 function cardioLinea(c) { return `${esc(cardioInt(c))}, ${esc(cardioDur(c))}`; }
 function respuestasSinLeer() { return S.buzon.filter(b => b.estado === 'respondida' && b.leida !== 'sí').length; }
+// Solo Tato (USR-001): consultas pendientes de los demás usuarios (solo lectura).
+function consultasAjenas() { return S.usuario === 'USR-001' ? (S.buzonOtros || []).filter(b => b.estado === 'pendiente') : []; }
+function globoBuzon() { return respuestasSinLeer() + consultasAjenas().length; }
 
 // ---------- Temporizador ----------
 function iniciarTemp(seg) {
@@ -272,7 +276,7 @@ function render() {
   document.querySelectorAll('#nav button').forEach(b => {
     b.classList.toggle('activo', b.dataset.v === (v === 'sesion' || v === 'ejercicio' ? 'hoy' : v));
     const old = b.querySelector('.globo'); if (old) old.remove();
-    if (b.dataset.v === 'buzon' && respuestasSinLeer()) b.insertAdjacentHTML('beforeend', `<span class="globo">${respuestasSinLeer()}</span>`);
+    if (b.dataset.v === 'buzon' && globoBuzon()) b.insertAdjacentHTML('beforeend', `<span class="globo">${globoBuzon()}</span>`);
   });
   const f = { hoy: vHoy, sesion: vSesion, ejercicio: vEjercicio, comida: vComida, progreso: vProgreso, entrenador: vEntrenador, buzon: vBuzon, perfil: vPerfil }[v];
   const aviso = (UI.msg ? `<div class="${/error|no se pudo|no autorizado|falló|falla/i.test(UI.msg) ? 'aviso' : /guardad|listo|conectad|enviad/i.test(UI.msg) ? 'ok' : 'info'}">${esc(UI.msg)}</div>` : '') + (S.cola.length && servidorListo() ? `<p class="pendientes">${S.cola.length} cambio(s) sin enviar.</p>` : '');
@@ -352,7 +356,7 @@ function explicacionEj(e) {
 function vHoy() {
   const p = S.perfil;
   const sin = !servidorListo() ? `<div class="info">Modo local: falta la dirección o la clave del servidor (Perfil, "Servidor y datos"). Mientras tanto los datos quedan solo en este celular.</div>` : '';
-  if (!p.nombre) return saludo() + `<div class="tarjeta vacio"><div class="ilus">${ic('plan')}</div><h2>Armemos tu primer plan</h2>
+  if (!perfilCompleto(p)) return saludo() + `<div class="tarjeta vacio"><div class="ilus">${ic('plan')}</div><h2>Armemos tu primer plan</h2>
     <p class="suave">Con tres datos el entrenador arma tu semana y te dice qué peso usar en cada serie.</p>
     <ol class="pasos"><li><span>1</span>Tu objetivo</li><li><span>2</span>Cuántos días y cuánto tiempo tenés</li><li><span>3</span>Si te molesta alguna zona</li></ol>
     <button class="b principal" data-acc="ir" data-v="perfil">Completar perfil</button></div>` + sin;
@@ -620,9 +624,15 @@ function vEntrenador() {
     ${resp.length ? `<div class="hilo">${resp.map(b => `<div class="burbuja yo">${esc(b.texto)}</div><div class="burbuja ent"><span class="quien">Entrenador</span>${esc(b.respuesta)}</div>`).join('')}</div>` : '<p class="suave" style="margin:0 2px">Sin respuestas todavía. Escribile desde el Buzón.</p>'}`;
 }
 
+// Consulta de otro usuario, solo lectura: usuario, estado y el texto que escribió.
+function hiloAjeno(b) {
+  return `<div class="hilo"><div class="hilo-meta"><span>${esc(USUARIOS[b.usuario] || b.usuario)} · ${esc(mayusc(b.tipo))} · ${fmtFecha(b.fecha)}</span><span class="etiqueta neutra">${esc(b.estado)}</span></div>
+    <div class="burbuja yo" style="white-space:pre-line">${esc(b.texto)}</div></div>`;
+}
 function vBuzon() {
   const l = [...S.buzon].reverse();
-  return `<div class="tarjeta redactar"><h3 style="margin:0">Escribile al entrenador</h3>
+  const aj = consultasAjenas();
+  return (aj.length ? `<div class="seccion-tit"><h3>Consultas sin responder (${aj.length})</h3></div>${[...aj].reverse().map(hiloAjeno).join('')}` : '') + `<div class="tarjeta redactar"><h3 style="margin:0">Escribile al entrenador</h3>
     <select id="bTipo" aria-label="Tipo de mensaje"><option value="consulta">Consulta</option><option value="sugerencia">Sugerencia</option><option value="reporte de error">Reporte de error</option></select>
     <textarea id="bTexto" aria-label="Mensaje" placeholder="Ej: ¿puedo cambiar el día de piernas al miércoles?"></textarea>
     <button class="b principal" data-acc="enviarBuzon">${ic('enviar')}Enviar</button></div>
@@ -699,8 +709,7 @@ function guardarRutina() {
   enviar('rutina', { filas });
 }
 function perfilPlano() {
-  const p = { ...S.perfil };
-  return p; // enviar() serializa listas; el backend las guarda como JSON
+  return perfilParaServidor(S.perfil); // lo que la persona no completó va vacío; enviar() serializa listas y el backend las guarda como JSON
 }
 function reemplazar(i, a) {
   const e = S.sesion.ejercicios[i];
@@ -848,7 +857,7 @@ document.addEventListener('change', (ev) => {
   if (el.id === 'selUsuario') {
     leerPerfilForm(); guardarCache();
     guardarUsuario(el.value);
-    S = { ...S, usuario: el.value, perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [], buzon: [], cola: [], sesion: null, validacionEnviada: false };
+    S = { ...S, usuario: el.value, perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [], buzon: [], buzonOtros: [], cola: [], sesion: null, validacionEnviada: false };
     sincronizar(); render();
   }
   if (el.dataset && el.dataset.accCh === 'ejProgreso') { UI.ejProgreso = el.value; render(); }
