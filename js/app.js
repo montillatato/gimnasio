@@ -565,8 +565,17 @@ function linea(v) {
 }
 
 function esSiNo(x) { return /\bsi tolera\b/i.test(x); }
+// Un mensaje del buzón: texto, estado (neutro / verde) y respuesta del entrenador si existe.
+function hiloBuzon(b, titulo) {
+  const resp = !!b.respuesta, hecho = resp || b.estado === 'respondida';
+  return `<div class="hilo"><div class="hilo-meta"><span>${esc(titulo)} · ${fmtFecha(b.fecha)}</span><span class="etiqueta ${hecho ? '' : 'neutra'}">${hecho ? 'respondida' : 'pendiente'}</span></div>
+    <div class="burbuja yo" style="white-space:pre-line">${esc(b.texto)}</div>
+    ${resp ? `<div class="burbuja ent" style="white-space:pre-line"><span class="quien">Entrenador</span>${esc(b.respuesta)}</div>` : '<div class="esperando"><i><b></b><b></b><b></b></i>Esperando respuesta del entrenador</div>'}</div>`;
+}
 function formValidar(puntos) {
-  if (S.validacionEnviada) return `<div class="validar"><h3>${ic('check')}Para ajustar tu plan</h3><div class="ok">Respuestas enviadas. El entrenador las revisa.</div><button class="b" data-acc="validarOtraVez">Volver a responder</button></div>`;
+  const enviadas = S.buzon.filter(b => /^validaci[oó]n$/i.test(b.tipo || '')).reverse();
+  if (S.validacionEnviada || (enviadas.length && !UI.editandoVal)) return `<div class="validar"><h3>${ic('check')}Para ajustar tu plan</h3><div class="ok">Respuestas enviadas. El entrenador las revisa.</div>
+    ${enviadas.map(b => hiloBuzon(b, 'Validación')).join('')}<button class="b" data-acc="validarOtraVez">Volver a responder</button></div>`;
   return `<div class="validar"><h3>${ic('info')}Para ajustar tu plan</h3><p class="suave" style="margin:0">Contestá lo que puedas: el entrenador revisa tus respuestas y ajusta el plan con vos.</p>
     <div class="val-form">${puntos.map((x, i) => `<div class="val-campo"><label for="val${i}">${esc(x)}</label>${esSiNo(x)
       ? `<select id="val${i}" data-val="${i}"><option value="">Elegí una opción</option><option>Sí</option><option>No</option><option>No sé</option></select>`
@@ -618,9 +627,7 @@ function vBuzon() {
     <textarea id="bTexto" aria-label="Mensaje" placeholder="Ej: ¿puedo cambiar el día de piernas al miércoles?"></textarea>
     <button class="b principal" data-acc="enviarBuzon">${ic('enviar')}Enviar</button></div>
     ${l.length ? '<div class="seccion-tit"><h3>Conversaciones</h3></div>' : '<p class="suave" style="margin:0 2px">Todavía no hay mensajes. Las respuestas del entrenador aparecen acá.</p>'}
-    ${l.map(b => `<div class="hilo"><div class="hilo-meta"><span>${esc(mayusc(b.tipo))} · ${fmtFecha(b.fecha)}</span><span class="etiqueta ${b.estado === 'respondida' ? '' : 'pend'}">${esc(b.estado || 'pendiente')}</span></div>
-      <div class="burbuja yo">${esc(b.texto)}</div>
-      ${b.respuesta ? `<div class="burbuja ent"><span class="quien">Entrenador</span>${esc(b.respuesta)}</div>` : '<div class="esperando"><i><b></b><b></b><b></b></i>Esperando respuesta del entrenador</div>'}</div>`).join('')}`;
+    ${l.map(b => hiloBuzon(b, mayusc(b.tipo))).join('')}`;
 }
 
 function vPerfil() {
@@ -806,10 +813,12 @@ const ACC = {
     const puntos = plan().aValidar || [];
     const texto = puntos.map((q, i) => { const el = $('#val' + i); const r = el && el.value.trim(); return `${q} ${r || 'Sin respuesta'}`; }).join('\n');
     if (!puntos.some((q, i) => { const el = $('#val' + i); return el && el.value.trim(); })) return;
-    enviar('buzon', { fecha: ahora(), tipo: 'validación', texto });
-    S.validacionEnviada = true; guardarCache(); render();
+    const f = ahora();
+    S.buzon.push({ fecha: f, usuario: S.usuario, tipo: 'validación', texto, estado: 'pendiente', leida: 'no', respuesta: '' });
+    enviar('buzon', { fecha: f, tipo: 'validación', texto });
+    UI.editandoVal = false; S.validacionEnviada = true; guardarCache(); render();
   },
-  validarOtraVez: () => { S.validacionEnviada = false; guardarCache(); render(); },
+  validarOtraVez: () => { UI.editandoVal = true; S.validacionEnviada = false; guardarCache(); render(); },
   guardarPerfil: () => {
     leerPerfilForm();
     enviar('perfil', perfilPlano()); guardarRutina();
