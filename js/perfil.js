@@ -15,11 +15,14 @@ const vacio = (v) => v == null || (typeof v === 'string' && v.trim() === '') || 
 export function perfilCompleto(p) { return !!(p && typeof p.nombre === 'string' && p.nombre.trim()); }
 
 // Perfil para escribir en la hoja: lo que sigue igual al valor por defecto (la persona no lo tocó) o está vacío va como ''.
+// Campos de opción: siempre se guardan con su valor, aunque coincidan con el por defecto.
+const CAMPOS_SIEMPRE = ['objetivo', 'experiencia', 'dias', 'duracion_min', 'tono', 'unidad'];
 export function perfilParaServidor(p) {
   const o = { ...p };
   Object.keys(PERFIL_BASE).forEach((k) => {
     const base = PERFIL_BASE[k], v = o[k];
     if (Array.isArray(base)) { if (vacio(v) || (typeof v === 'string' && lista(v).length === 0)) o[k] = ''; return; }
+    if (CAMPOS_SIEMPRE.includes(k)) { if (vacio(v)) o[k] = base; return; }
     if (vacio(v) || String(v) === String(base)) o[k] = '';
   });
   return o;
