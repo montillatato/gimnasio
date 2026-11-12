@@ -220,7 +220,8 @@ function cardioDetalle(c) { return cardioNom(c).toLowerCase().includes(cardioInt
 function cardioLinea(c) { return `${esc(cardioInt(c))}, ${esc(cardioDur(c))}`; }
 function respuestasSinLeer() { return S.buzon.filter(b => b.estado === 'respondida' && b.leida !== 'sí').length; }
 // Solo Tato (USR-001): consultas pendientes de los demás usuarios (solo lectura).
-function consultasAjenas() { return S.usuario === 'USR-001' ? (S.buzonOtros || []).filter(b => b.estado === 'pendiente') : []; }
+// Cada persona ve solo su buzón: las consultas de otros usuarios no se muestran.
+function consultasAjenas() { return []; }
 function globoBuzon() { return respuestasSinLeer() + consultasAjenas().length; }
 
 // ---------- Temporizador ----------
