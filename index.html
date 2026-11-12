@@ -91,6 +91,26 @@ main.entra > *:nth-child(2) { animation-delay: 30ms; } main.entra > *:nth-child(
 .tres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .dos > *, .tres > * { min-width: 0; }
 
+/* ---------- Cardio (accesorio) ---------- */
+.dia { position: relative; }
+.punto { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--acento); }
+.dia .punto { position: absolute; top: 0; right: calc(50% - 17px); box-shadow: 0 0 0 2px var(--tarjeta); }
+.dia.hoy .punto { top: -4px; right: calc(50% - 21px); box-shadow: 0 0 0 2px var(--tarjeta); }
+.leyenda-cardio { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12px; color: var(--tenue); }
+.cardio-nota { margin: 0 2px; font-size: 14px; color: var(--suave); }
+.cardio-nota b { font-weight: 650; }
+.cardio-hoy { background: var(--tarjeta-2); border: 1px solid var(--linea); border-radius: var(--r-chico); padding: 12px 14px; }
+.cardio-hoy .ceja { margin-bottom: 4px; }
+.cardio-hoy p { margin: 0; font-size: 14.5px; color: var(--suave); }
+.cardio-hoy b { color: var(--texto); font-weight: 650; }
+.descanso { margin: 0 2px; font-size: 14.5px; color: var(--suave); }
+.cardio-bloque { margin-top: 12px; padding: 10px 12px; border-radius: var(--r-chico); background: var(--tarjeta-2); border-left: 3px solid var(--acento-suave); }
+.cardio-bloque .mini { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); margin-bottom: 4px; }
+.cardio-bloque .nom { font-size: 14.5px; font-weight: 650; color: var(--suave); }
+.cardio-bloque .det { font-size: 13.5px; color: var(--suave); }
+.cardio-bloque p { margin: 6px 0 0; font-size: 13px; color: var(--tenue); }
+.dia-cardio { padding: 12px 16px; }
+.dia-cardio .cardio-bloque { margin-top: 0; }
 /* ---------- Botones ---------- */
 button { font-family: inherit; cursor: pointer; }
 button.b, .b { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; border-radius: 14px; border: 1px solid var(--linea);
@@ -316,6 +336,11 @@ svg.lin text { fill: var(--tenue); font: 600 11px var(--f-num); }
 .validar h3 { display: flex; align-items: center; gap: 8px; color: var(--arena-texto); }
 .validar ul { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
 .validar li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; margin: 0; font-size: 15px; }
+.val-form { display: flex; flex-direction: column; gap: 14px; margin: 14px 0; }
+.val-campo { display: flex; flex-direction: column; gap: 6px; }
+.val-campo label { font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.validar .b { margin-top: 12px; }
+.validar .ok { margin-top: 12px; }
 .validar li::before { content: ""; width: 14px; height: 14px; margin-top: 3px; border-radius: 50%; border: 2px dashed var(--arena-texto); }
 details.plegable { border-top: 1px solid var(--linea); }
 details.plegable > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; cursor: pointer; font-weight: 650; font-size: 15px; color: var(--texto); }

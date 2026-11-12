@@ -208,6 +208,14 @@ function sesionDelDia() {
   if (!p.sesiones.length) return null;
   return p.sesiones[indiceSesion(p)];
 }
+// Cardio del plan (datos de planes.js): por día, y texto corto.
+function cardioDe(pl, dia) { return pl.fuente === 'entrenador' ? (pl.cardio || []).filter(c => c.dia === dia) : []; }
+function cardioDur(c) { return String(c.duracionMin).replace(/\s*→\s*/, ' a ') + ' min'; }
+function cardioInt(c) { return String(c.intensidad || '').replace(/\s*\([^)]*\)/g, '').trim(); }
+function cardioNom(c) { return ej_[c.id] ? ej_[c.id].nombre : c.id; }
+// Detalle sin repetir la intensidad si ya está en el nombre del ejercicio (ej. "Bicicleta estática zona 2").
+function cardioDetalle(c) { return cardioNom(c).toLowerCase().includes(cardioInt(c).toLowerCase()) ? esc(cardioDur(c)) : cardioLinea(c); }
+function cardioLinea(c) { return `${esc(cardioInt(c))}, ${esc(cardioDur(c))}`; }
 function respuestasSinLeer() { return S.buzon.filter(b => b.estado === 'respondida' && b.leida !== 'sí').length; }
 
 // ---------- Temporizador ----------
@@ -277,11 +285,22 @@ function render() {
   vista.innerHTML = aviso + f();
   guardarCache();
 }
-function ir(v) {
-  if (v === 'ejercicio') S.previa = S.vista;
+let POS = null; // posición de la pantalla de origen al abrir Ejercicio
+function ir(v, volver) {
+  if (v === 'ejercicio') {
+    POS = { vista: S.vista, y: window.scrollY, abiertos: [...document.querySelectorAll('#vista details')].map(d => d.open) };
+    S.previa = S.vista;
+  }
+  const restaurar = volver && POS && POS.vista === v ? POS : null;
+  if (v !== 'ejercicio') POS = null;
   S.vista = v; UI.panel = null;
   if (v === 'buzon') marcarLeidas();
-  render(); window.scrollTo(0, 0);
+  render();
+  if (!restaurar) { window.scrollTo(0, 0); return; }
+  const ds = document.querySelectorAll('#vista details');
+  restaurar.abiertos.forEach((o, i) => { if (o && ds[i]) ds[i].open = true; });
+  window.scrollTo(0, restaurar.y);
+  requestAnimationFrame(() => { window.scrollTo(0, restaurar.y); setTimeout(() => window.scrollTo(0, restaurar.y), 60); });
 }
 
 // Nombre de la sesión sin el día adelante ("Lunes · Inferior A" → "Inferior A").
@@ -305,13 +324,14 @@ function resumenSemana(pl) {
   const dias = letras.map((l, k) => {
     const d = new Date(lunes); d.setDate(lunes.getDate() + k);
     const cls = [hechasDias.has(fechaLocal(d)) ? 'hecho' : '', diasPlan.has(DIAS_SEMANA[d.getDay()]) ? 'plan' : '', d.getTime() === hoy.getTime() ? 'hoy' : ''].join(' ');
-    return `<div class="dia ${cls}"><i>${hechasDias.has(fechaLocal(d)) ? ic('check') : ''}</i>${l}</div>`;
+    const card = cardioDe(pl, DIAS_SEMANA[d.getDay()]).length ? ' cardio' : '';
+    return `<div class="dia ${cls}${card}"${card ? ' title="Con cardio"' : ''}><i>${hechasDias.has(fechaLocal(d)) ? ic('check') : ''}</i>${l}${card ? '<span class="punto" aria-label="con cardio"></span>' : ''}</div>`;
   }).join('');
   const falta = Math.max(0, meta - hechas);
   const frase = hechas >= meta ? 'Semana cumplida. Muy bien.' : hechas ? `Te ${falta === 1 ? 'falta 1 sesión' : `faltan ${falta} sesiones`} para cerrar la semana.` : `${meta} sesiones en el plan de esta semana.`;
   return `<div class="tarjeta"><div class="semana">${anillo(hechas / meta, `${hechas}/${meta}`, 'semana')}
     <div><h3>Tu semana</h3><p class="suave" style="margin:0">${frase}</p></div></div>
-    <div class="dias">${dias}</div></div>`;
+    <div class="dias">${dias}</div>${(pl.cardio || []).length && pl.fuente === 'entrenador' ? '<p class="leyenda-cardio"><span class="punto"></span>Día con cardio</p>' : ''}</div>`;
 }
 
 // Explicación plegada de cada ejercicio en Hoy (datos del catálogo y del plan, sin texto nuevo).
@@ -356,11 +376,19 @@ function vHoy() {
     const hechas = S.series.filter(x => x.sesion_id === S.sesion.id).length;
     curso = `<div class="en-curso"><span>En curso</span><div class="barra"><div style="width:${Math.min(100, hechas / tot * 100)}%"></div></div><span class="n">${hechas}/${tot}</span></div>`;
   }
-  return saludo() + `<div class="hero"><span class="ceja">${ceja}</span>
+  const hoyDia = DIAS_SEMANA[new Date().getDay()];
+  const cardioHoy = cardioDe(pl, hoyDia);
+  const cardioNota = esHoy && cardioHoy.length ? cardioHoy.map(c => `<p class="cardio-nota"><b>Cardio:</b> ${cardioLinea(c)}</p>`).join('') : '';
+  const sinFuerzaHoy = ent && !esHoy;
+  const bloqueHoy = !sinFuerzaHoy ? '' : cardioHoy.length
+    ? `<div class="cardio-hoy"><span class="ceja">Hoy toca cardio</span>${cardioHoy.map(c => `<p><b>${esc(cardioNom(c))}</b> · ${cardioDetalle(c)}</p>`).join('')}</div>`
+    : '<p class="descanso">Día de descanso</p>';
+  return saludo() + bloqueHoy + `<div class="hero"><span class="ceja">${ceja}</span>
     <h2>${esc(sinDia(s))}</h2>
     <div class="hero-meta"><span><b>${s.ejercicios.length}</b> ejercicios</span><span><b>${totalSeries}</b> series</span>${s.duracionMin ? `<span><b>~${s.duracionMin}</b> min</span>` : ''}</div>
     ${curso}<button class="b principal" data-acc="empezar">${ic(S.sesion ? 'ir' : 'pesa')}${S.sesion ? 'Continuar sesión' : 'Empezar sesión'}</button>
     <ul class="ejs">${filas}</ul></div>
+    ${cardioNota}
     ${ent ? '' : '<p class="suave" style="margin:0 2px">Plan automático: todavía no hay plan del entrenador para vos.</p>'}
     ${respuestasSinLeer() ? `<button class="b" data-acc="ir" data-v="buzon">${ic('enviar')}Tenés ${respuestasSinLeer()} respuesta(s) nueva(s) del entrenador</button>` : ''}
     ${resumenSemana(pl)}
@@ -443,7 +471,7 @@ function vEjercicio() {
   if (!c) return '<button class="b" data-acc="ir" data-v="hoy">Volver</button>';
   let porque = '';
   plan().sesiones.forEach(s => s.ejercicios.forEach(e => { if (e.id === c.id && !porque) porque = e.justificacion; }));
-  return `<button class="b chico fantasma volver" data-acc="ir" data-v="${S.previa}">${ic('volver')}Volver</button>
+  return `<button class="b chico fantasma volver" data-acc="ir" data-volver="1" data-v="${S.previa}">${ic('volver')}Volver</button>
     <div class="tarjeta">${imagenEj(c)}<span class="ceja">${esc(mayusc(c.equipo))}</span><h2>${esc(c.nombre)}</h2><p>${esc(c.descripcion)}</p>
     <div class="chips">${c.musculos.map(m => `<span class="etiqueta">${esc(m)}</span>`).join('')}</div></div>
     <div class="tarjeta"><h3>Técnica</h3><ol class="tecnica">${c.tecnica.map(t => `<li><span>${esc(t)}</span></li>`).join('')}</ol></div>
@@ -536,28 +564,49 @@ function linea(v) {
     <circle class="punto" cx="${X(v.length - 1).toFixed(1)}" cy="${Y(ult).toFixed(1)}" r="5"/></svg>`;
 }
 
+function esSiNo(x) { return /\bsi tolera\b/i.test(x); }
+function formValidar(puntos) {
+  if (S.validacionEnviada) return `<div class="validar"><h3>${ic('check')}Para ajustar tu plan</h3><div class="ok">Respuestas enviadas. El entrenador las revisa.</div><button class="b" data-acc="validarOtraVez">Volver a responder</button></div>`;
+  return `<div class="validar"><h3>${ic('info')}Para ajustar tu plan</h3><p class="suave" style="margin:0">Contestá lo que puedas: el entrenador revisa tus respuestas y ajusta el plan con vos.</p>
+    <div class="val-form">${puntos.map((x, i) => `<div class="val-campo"><label for="val${i}">${esc(x)}</label>${esSiNo(x)
+      ? `<select id="val${i}" data-val="${i}"><option value="">Elegí una opción</option><option>Sí</option><option>No</option><option>No sé</option></select>`
+      : `<input id="val${i}" data-val="${i}" type="text" autocomplete="off">`}</div>`).join('')}</div>
+    <button class="b principal" data-acc="enviarValidacion">${ic('enviar')}Enviar respuestas</button></div>`;
+}
+
+function bloqueCardio(c) {
+  return `<div class="cardio-bloque"><span class="mini">Complemento: cardio</span>
+    <div class="nom">${esc(cardioNom(c))}</div><div class="det">${cardioDetalle(c)}</div>${c.motivo ? `<p>${esc(c.motivo)}</p>` : ''}</div>`;
+}
+// Días con cardio y sin fuerza (ej. miércoles): tarjeta propia, secundaria.
+function diasSoloCardio(lista) {
+  const hoyDia = DIAS_SEMANA[new Date().getDay()];
+  return lista.map(c => ({ d: c.dia, h: `<div class="tarjeta dia-plan dia-cardio"><span class="ceja">${esc(c.dia)}${c.dia === hoyDia ? ' · hoy' : ''} · sin fuerza</span>${bloqueCardio(c)}</div>` }));
+}
+
 function vEntrenador() {
   const p = plan();
   const resp = S.buzon.filter(b => b.respuesta);
   const ent = p.fuente === 'entrenador';
   const plegable = (titulo, cuerpo, extra = '') => `<details class="plegable ${extra}"><summary><span>${titulo}</span>${ic('abajo')}</summary>${cuerpo}</details>`;
   const hoyDia = DIAS_SEMANA[new Date().getDay()];
+  const diasFuerza = new Set(p.sesiones.map(s => s.dia));
+  const cardioSuelto = ent ? p.cardio.filter(c => !diasFuerza.has(c.dia)) : [];
+  const tarjetaFuerza = s => `<div class="tarjeta dia-plan"><div class="cab"><div><span class="ceja">${ent ? esc(s.dia) + (s.dia === hoyDia ? ' · hoy' : '') : `Día ${s.orden}`}</span><h3>${esc(ent ? sinDia(s) : s.nombre)}</h3></div></div>
+      <p class="suave" style="margin:0">${s.ejercicios.length} ejercicios · ~${s.duracionMin} min</p>
+      ${s.ejercicios.map(e => `<div class="ej-plan"><div class="top"><div><div class="nom">${esc(e.nombre)}</div>
+        <div class="chips"><span class="chip">${e.series} × ${e.reps[0]}–${e.reps[1]}</span><span class="chip">RIR ${e.rir}</span><span class="chip">${ic('reloj').replace('class="i"', 'class="i" style="width:14px;height:14px;margin-right:4px"')}${fmtNum(e.descanso / 60)} min</span></div></div>
+        <button class="b icono fantasma" data-acc="verEj" data-id="${e.id}" aria-label="Ver ejercicio ${esc(e.nombre)}">${ic('info')}</button></div>
+        ${plegable('Por qué', `<p>${esc(e.justificacion)}</p>`)}</div>`).join('')}${ent ? cardioDe(p, s.dia).map(bloqueCardio).join('') : ''}</div>`;
+  const tarjetasDias = (ent ? [...p.sesiones.map(s => ({ d: s.dia, h: tarjetaFuerza(s) })), ...diasSoloCardio(cardioSuelto)].sort((x, y) => (DIAS_SEMANA.indexOf(x.d) + 6) % 7 - (DIAS_SEMANA.indexOf(y.d) + 6) % 7).map(x => x.h) : p.sesiones.map(tarjetaFuerza)).join('');
   return `<div class="tarjeta plan-cab"><div class="fila"><span class="etiqueta ${ent && p.estado !== 'definitivo' ? 'pend' : ''}">${ent ? (p.estado === 'definitivo' ? ic('check') : '') + esc(p.estado) : 'plan automático'}</span>
       <span class="etiqueta neutra">${p.sesiones.length} días de fuerza</span></div>
     <h2 style="margin-bottom:6px">${ent ? 'Tu plan' : 'Plan base'}</h2>
     <p class="suave" style="margin:0">${ent ? 'Armado por tu entrenador. Cada ejercicio tiene su motivo: tocá «Por qué» para leerlo.' : 'Todavía no hay plan del entrenador para vos: este es el plan base según tu perfil.'} Se ajusta con tus datos reales.</p>
     ${ent && p.notas.length ? `<div style="margin-top:12px">${plegable(`Criterio del plan · ${p.notas.length}`, `<ul class="notas">${p.notas.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}</div>` : ''}</div>
     ${p.avisos.length ? `<div class="info">${p.avisos.map(esc).join('<br>')}</div>` : ''}
-    ${ent && p.aValidar.length ? `<div class="validar"><h3>${ic('info')}Lo que falta validar</h3><p class="suave" style="margin:0">Puntos para hablar con el entrenador antes de dejar el plan como definitivo.</p><ul>${p.aValidar.map(x => `<li><span>${esc(x)}</span></li>`).join('')}</ul></div>` : ''}
-    ${p.sesiones.map(s => `<div class="tarjeta dia-plan"><div class="cab"><div><span class="ceja">${ent ? esc(s.dia) + (s.dia === hoyDia ? ' · hoy' : '') : `Día ${s.orden}`}</span><h3>${esc(ent ? sinDia(s) : s.nombre)}</h3></div></div>
-      <p class="suave" style="margin:0">${s.ejercicios.length} ejercicios · ~${s.duracionMin} min</p>
-      ${s.ejercicios.map(e => `<div class="ej-plan"><div class="top"><div><div class="nom">${esc(e.nombre)}</div>
-        <div class="chips"><span class="chip">${e.series} × ${e.reps[0]}–${e.reps[1]}</span><span class="chip">RIR ${e.rir}</span><span class="chip">${ic('reloj').replace('class="i"', 'class="i" style="width:14px;height:14px;margin-right:4px"')}${fmtNum(e.descanso / 60)} min</span></div></div>
-        <button class="b icono fantasma" data-acc="verEj" data-id="${e.id}" aria-label="Ver ejercicio ${esc(e.nombre)}">${ic('info')}</button></div>
-        ${plegable('Por qué', `<p>${esc(e.justificacion)}</p>`)}</div>`).join('')}</div>`).join('')}
-    ${ent && p.cardio.length ? `<div class="tarjeta"><span class="ceja">Sesiones aparte</span><h3>Cardio</h3>${p.cardio.map(c => `<div class="cardio-it"><div class="nom" style="font-weight:650">${esc(c.dia)} · ${esc(ej_[c.id] ? ej_[c.id].nombre : c.id)}</div>
-      <div class="chips" style="margin:6px 0"><span class="chip">${esc(c.duracionMin)} min</span><span class="chip" style="font-family:var(--f-texto)">${esc(c.intensidad)}</span></div>
-      <p class="suave" style="margin:0;font-size:14.5px">${esc(c.motivo)}</p></div>`).join('')}</div>` : ''}
+    ${ent && p.aValidar.length ? formValidar(p.aValidar) : ''}
+    ${tarjetasDias}
     <div class="seccion-tit"><h3>Respuestas del entrenador</h3></div>
     ${resp.length ? `<div class="hilo">${resp.map(b => `<div class="burbuja yo">${esc(b.texto)}</div><div class="burbuja ent"><span class="quien">Entrenador</span>${esc(b.respuesta)}</div>`).join('')}</div>` : '<p class="suave" style="margin:0 2px">Sin respuestas todavía. Escribile desde el Buzón.</p>'}`;
 }
@@ -661,7 +710,7 @@ function descargarCSV() {
 }
 
 const ACC = {
-  ir: (el) => ir(el.dataset.v),
+  ir: (el) => ir(el.dataset.v, !!el.dataset.volver),
   verEj: (el) => { S.ejId = el.dataset.id; ir('ejercicio'); },
   empezar: () => {
     if (!S.sesion) {
@@ -753,6 +802,14 @@ const ACC = {
     const b = { fecha: ahora(), usuario: S.usuario, tipo: $('#bTipo').value, texto, estado: 'pendiente', leida: 'no', respuesta: '' };
     S.buzon.push(b); enviar('buzon', { fecha: b.fecha, tipo: b.tipo, texto }); render();
   },
+  enviarValidacion: () => {
+    const puntos = plan().aValidar || [];
+    const texto = puntos.map((q, i) => { const el = $('#val' + i); const r = el && el.value.trim(); return `${q} ${r || 'Sin respuesta'}`; }).join('\n');
+    if (!puntos.some((q, i) => { const el = $('#val' + i); return el && el.value.trim(); })) return;
+    enviar('buzon', { fecha: ahora(), tipo: 'validación', texto });
+    S.validacionEnviada = true; guardarCache(); render();
+  },
+  validarOtraVez: () => { S.validacionEnviada = false; guardarCache(); render(); },
   guardarPerfil: () => {
     leerPerfilForm();
     enviar('perfil', perfilPlano()); guardarRutina();
@@ -782,7 +839,7 @@ document.addEventListener('change', (ev) => {
   if (el.id === 'selUsuario') {
     leerPerfilForm(); guardarCache();
     guardarUsuario(el.value);
-    S = { ...S, usuario: el.value, perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [], buzon: [], cola: [], sesion: null };
+    S = { ...S, usuario: el.value, perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [], buzon: [], cola: [], sesion: null, validacionEnviada: false };
     sincronizar(); render();
   }
   if (el.dataset && el.dataset.accCh === 'ejProgreso') { UI.ejProgreso = el.value; render(); }

@@ -538,6 +538,18 @@ export const CATALOGO = [
     justificacion: 'El recto abdominal crece como cualquier músculo: con flexión cargada y progresiva cerca del fallo. Los isométricos lo trabajan poco para hipertrofia; la polea permite subir la carga de a pasos.',
     imagen: null,
   },
+  {
+    id: 'EJ-046', nombre: 'Crunch inverso en el piso', patron: 'core', grupo: 'core',
+    musculos: ['recto abdominal'], secundarios: ['oblicuos', 'flexores de cadera'], volumen: { core: 1 },
+    equipo: 'ninguno', nivel: 'principiante',
+    descripcion: 'Boca arriba, con la cabeza y los hombros apoyados y las rodillas flexionadas. Se enrolla la pelvis hacia las costillas hasta despegar la cola del piso y se vuelve lento.',
+    tecnica: ['Cabeza y hombros apoyados todo el tiempo, sin empujar con la nuca', 'Enrollar la pelvis hacia las costillas, sin balancear las piernas para tomar impulso', 'Bajar en 2–3 segundos, sin arquear la lumbar al final'],
+    zonasCuidado: ['lumbar'], excluyeSi: [],
+    ajustes: { lumbar: 'Rango corto y sin impulso: la cola apenas se despega del piso. Si molesta, pasar a dead bug.' },
+    alternativas: ['EJ-044', 'EJ-028'],
+    justificacion: 'Flexión dinámica del recto abdominal desde la pelvis, con la cabeza apoyada: nada tira del cuello, a diferencia del crunch en polea. Mostró activación alta del recto abdominal (Escamilla y col., 2006); es evidencia de activación, no de crecimiento medido. Se progresa en repeticiones y después con el banco inclinado.',
+    imagen: null,
+  },
 
   // ---------- CARDIO (sesiones separadas de la fuerza) ----------
   {
