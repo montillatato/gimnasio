@@ -3,6 +3,7 @@
 // Es el punto de partida: las decisiones finas las revisa el entrenador con los datos reales,
 // y cada sugerencia devuelve su motivo para que se pueda auditar (DISENO.md §9 y §12).
 import { CATALOGO, GRUPOS_VOLUMEN } from './catalogo.js';
+import { NUTRICION } from './nutricion.js';
 
 const porId = Object.fromEntries(CATALOGO.map(e => [e.id, e]));
 const redondear = (x, d = 1) => Math.round(x * 10 ** d) / 10 ** d;
@@ -589,7 +590,7 @@ const CLASE = {
   sobra: 'sobra', excede: 'sobra', muchos: 'sobra', arriba: 'sobra',
 };
 
-// Balance calórico frente a mantenimiento, en % (DISENO §4).
+// Balance calórico frente a mantenimiento, en % (DISENO §4). Se usa solo si la persona no tiene objetivo de comida propio.
 // Hipertrofia sin "verse gordo": de mantenimiento a +10% (superávit chico, menos grasa ganada; Iraki y col., 2019).
 // Recomposición: déficit leve, de −15% a mantenimiento.
 const BALANCE = { hipertrofia: [0, 10], recomposicion: [-15, 0], fuerza: [0, 10] };
@@ -597,13 +598,47 @@ const BALANCE = { hipertrofia: [0, 10], recomposicion: [-15, 0], fuerza: [0, 10]
 // En déficit (recomposición) se apunta más alto para proteger el músculo.
 const PROTEINA = { hipertrofia: { ok: 1.6, justa: 1.2 }, recomposicion: { ok: 1.8, justa: 1.4 }, fuerza: { ok: 1.6, justa: 1.2 } };
 
+// Objetivos de comida por persona (los decide la nutricionista; cada usuario tiene el suyo en nutricion.js).
+//   balance: rango "en línea" en % frente a mantenimiento; meta: el punto al que se apunta.
+//   proteina g/kg/día: ok = en línea, justa = parcial, meta = lo que se muestra como objetivo.
+//   textos: qué consejos de calorías usa (los de TEXTO.calorias.hacer).
+// superavit_chico: ganar músculo sin grasa visible. ~5% vs ~15% de superávit en entrenados dio músculo parecido
+//   y más grasa con el grande (Helms y col., 2023); por eso el techo es +10% y la meta +5%.
+// deficit_leve: ganar músculo y bajar grasa. Hasta −10% queda lejos de las ~500 kcal/día de déficit desde las que
+//   se frena la ganancia de músculo (Murphy y Koehler, 2022). En déficit, proteína más alta (Helms y col., 2014).
+export const OBJETIVOS_COMIDA = {
+  superavit_chico: { balance: [0, 10], meta: 5, proteina: { ok: 1.6, justa: 1.2, meta: 1.8 }, textos: 'hipertrofia' },
+  mantenimiento:   { balance: [-5, 5], meta: 0, proteina: { ok: 1.6, justa: 1.2, meta: 1.8 }, textos: 'hipertrofia' },
+  deficit_leve:    { balance: [-10, 0], meta: -5, proteina: { ok: 1.8, justa: 1.4, meta: 2.0 }, textos: 'recomposicion' },
+};
+// Margen de error al cargar calorías: hasta 3 puntos fuera del rango cuenta como "a ajustar", no como falla.
+const TOLERANCIA_PCT = 3;
+
+const edadEn = (nac, hoy) => {
+  const n = new Date(nac); if (isNaN(n)) return 0;
+  let e = hoy.getFullYear() - n.getFullYear();
+  if (hoy.getMonth() < n.getMonth() || (hoy.getMonth() === n.getMonth() && hoy.getDate() < n.getDate())) e--;
+  return e;
+};
+// Mantenimiento estimado cuando el perfil no lo trae: Mifflin-St Jeor (Mifflin y col., 1990) por un factor de actividad
+// según los días de entrenamiento. Error individual de ±10%: es punto de partida; se corrige con el peso de 2–3 semanas.
+// Devuelve 0 si falta peso, altura, edad o sexo (femenino/masculino).
+export function estimarMantenimiento(perfil = {}, hoy = new Date()) {
+  const peso = +perfil.peso_kg, alt = +perfil.altura_cm, edad = edadEn(perfil.fecha_nacimiento, hoy);
+  const s = { masculino: 5, femenino: -161 }[perfil.sexo];
+  if (!(peso > 0 && alt > 0 && edad > 0) || s === undefined) return 0;
+  const dias = +perfil.dias || 0;
+  const factor = dias >= 5 ? 1.7 : dias >= 3 ? 1.55 : 1.4;
+  return Math.round((10 * peso + 6.25 * alt - 5 * edad + s) * factor / 10) * 10;
+}
+
 const TEXTO = {
   calorias: {
-    bien: 'calorías dentro del rango', falta: 'calorías por debajo del rango', sobra: 'calorías por encima del rango', mejorar: 'calorías fuera del rango',
+    bien: 'calorías dentro del rango', falta: 'calorías por debajo del rango', sobra: 'calorías por encima del rango', mejorar: 'calorías apenas fuera del rango',
     hacer: {
       falta: { hipertrofia: 'sumá una colación (por ejemplo, yogur con avena o un sándwich): sin llegar a mantenimiento el músculo no crece', recomposicion: 'no bajes tanto: un déficit grande frena el músculo; sumá una colación con proteína', fuerza: 'sumá una colación: sin energía suficiente la fuerza se estanca' },
       sobra: { hipertrofia: 'volvé a mantenimiento o apenas arriba: un superávit grande suma más grasa que músculo', recomposicion: 'recortá porciones de lo más calórico (aceite, harinas, alcohol, dulces) hasta volver a un déficit leve', fuerza: 'volvé a mantenimiento o apenas arriba' },
-      mejorar: 'revisá si te pasaste o te quedaste corto y ajustá las porciones',
+      mejorar: 'quedaste cerca: con una porción más o una menos volvés al rango',
     },
   },
   proteina: { bien: 'proteína suficiente', mejorar: 'proteína justa', falta: 'proteína baja', hacer: 'poné una fuente de proteína (carne, pollo, pescado, huevos, lácteos o legumbres) en cada comida principal, repartida en 3–4 comidas' },
@@ -621,28 +656,42 @@ function accion(cat, clase, objetivo) {
   return typeof x === 'string' ? x : (x?.[objetivo] ?? x?.hipertrofia);
 }
 const mayus = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const signo = (n) => (n > 0 ? `+${n}` : n === 0 ? '0' : `−${-n}`);
 const lista = (xs) => xs.length <= 1 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}`;
 
 // estados: { categoria: estado } con los valores de CHEQUEO_COMIDA.
 // tono: 'critico' | 'motivador' | 'neutro'. Cambia la forma, no los datos (DISENO §11.4).
 // contexto (opcional): { objetivo, pesoKg, proteinaG, kcal, kcalMantenimiento }. Si vienen números,
 // proteína y calorías se calculan con ellos en vez del estado cargado a mano.
+// Objetivo de comida de cada persona: contexto.objetivoComida (clave de OBJETIVOS_COMIDA) o contexto.usuario
+// (se busca en nutricion.js). Sin ninguno de los dos, se usa el balance genérico de contexto.objetivo.
+// contexto.perfil (opcional): el perfil completo; de ahí salen peso y mantenimiento si no vienen sueltos.
+// Si el perfil no tiene mantenimiento cargado, se estima con peso, altura, edad y sexo; si faltan, no se evalúan calorías.
 export function evaluarDia(estados = {}, tono = 'neutro', contexto = {}) {
-  const objetivo = BALANCE[contexto.objetivo] ? contexto.objetivo : 'hipertrofia';
+  const p = contexto.perfil || {};
+  const clave = OBJETIVOS_COMIDA[contexto.objetivoComida] ? contexto.objetivoComida : NUTRICION[contexto.usuario]?.objetivoComida;
+  const propio = OBJETIVOS_COMIDA[clave];
+  const generico = BALANCE[contexto.objetivo ?? p.objetivo] ? (contexto.objetivo ?? p.objetivo) : 'hipertrofia';
+  const objetivo = propio ? propio.textos : generico; // qué textos de consejo usar
+  const rango = propio ? propio.balance : BALANCE[generico];
+  const prot = propio ? propio.proteina : PROTEINA[generico];
+  const pesoKg = contexto.pesoKg > 0 ? contexto.pesoKg : +p.peso_kg || 0;
+  let mant = contexto.kcalMantenimiento > 0 ? contexto.kcalMantenimiento : +p.kcal_mantenimiento || 0;
   const e = { ...estados };
   const datos = {};
+  if (propio) datos.objetivoComida = clave;
+  if (!(mant > 0) && contexto.perfil) { mant = estimarMantenimiento(p, contexto.hoy); if (mant) datos.mantenimientoEstimado = mant; }
 
-  if (contexto.proteinaG > 0 && contexto.pesoKg > 0) {
-    const gkg = redondear(contexto.proteinaG / contexto.pesoKg);
-    const t = PROTEINA[objetivo];
-    e.proteina = gkg >= t.ok ? 'suficiente' : gkg >= t.justa ? 'justa' : 'faltante';
+  if (contexto.proteinaG > 0 && pesoKg > 0) {
+    const gkg = redondear(contexto.proteinaG / pesoKg);
+    e.proteina = gkg >= prot.ok ? 'suficiente' : gkg >= prot.justa ? 'justa' : 'faltante';
     datos.proteinaGkg = gkg;
-    datos.proteinaMetaG = Math.round(t.ok * contexto.pesoKg);
+    datos.proteinaMetaG = Math.round((prot.meta ?? prot.ok) * pesoKg);
   }
-  if (contexto.kcal > 0 && contexto.kcalMantenimiento > 0) {
-    const pct = Math.round((contexto.kcal / contexto.kcalMantenimiento - 1) * 100);
-    const [lo, hi] = BALANCE[objetivo];
-    e.calorias = pct > hi ? 'arriba' : pct < lo ? 'abajo' : 'dentro';
+  if (contexto.kcal > 0 && mant > 0) {
+    const pct = Math.round((contexto.kcal / mant - 1) * 100);
+    const [lo, hi] = rango;
+    e.calorias = pct > hi + TOLERANCIA_PCT ? 'arriba' : pct < lo - TOLERANCIA_PCT ? 'abajo' : (pct > hi || pct < lo) ? 'fuera' : 'dentro';
     datos.balancePct = pct;
     datos.rangoPct = [lo, hi];
   }
@@ -669,7 +718,7 @@ export function evaluarDia(estados = {}, tono = 'neutro', contexto = {}) {
   const tMal = [...faltan.map(c => txt(c, 'falta')), ...sobran.map(c => txt(c, 'sobra')), ...mejorar.map(c => txt(c, 'mejorar'))];
   const dato = [
     datos.proteinaGkg !== undefined ? `proteína ${datos.proteinaGkg} g/kg (meta ${datos.proteinaMetaG} g)` : null,
-    datos.balancePct !== undefined ? `balance ${datos.balancePct > 0 ? '+' : ''}${datos.balancePct}% (rango ${datos.rangoPct[0]}% a +${datos.rangoPct[1]}%)` : null,
+    datos.balancePct !== undefined ? `balance ${signo(datos.balancePct)}% (rango ${signo(datos.rangoPct[0])}% a ${signo(datos.rangoPct[1])}%${datos.mantenimientoEstimado ? `, sobre un mantenimiento estimado de ${datos.mantenimientoEstimado} kcal` : ''})` : null,
   ].filter(Boolean).join('; ');
   const pasos = acciones.slice(0, 2);
 

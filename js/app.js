@@ -3,6 +3,7 @@
 import { generarPlan, sugerirProgresion, estimarRM, evaluarDia, incremento, decremento, proponerAlternativa, estimarDuracion } from './motor.js';
 import { CATALOGO, ZONAS } from './catalogo.js';
 import { PLANES } from './planes.js';
+import { NUTRICION } from './nutricion.js';
 import { PERFIL_BASE, perfilCompleto, perfilParaServidor, perfilDesdeServidor, decidirPerfil } from './perfil.js';
 
 const CLAVE_CACHE = 'gimnasio_cache_v1';
@@ -491,7 +492,7 @@ function vComida() {
   const hoy = S.comidas.filter(c => String(c.fecha).slice(0, 10) === hoyStr());
   const kcal = hoy.reduce((a, c) => a + num(c.calorias), 0);
   const r = UI.resultadoComida;
-  return `<div class="tarjeta"><h3>¿Qué comiste?</h3>
+  return `${tarjetaNutricion()}<div class="tarjeta"><h3>¿Qué comiste?</h3>
     <label for="cTexto">Descripción</label><textarea id="cTexto" placeholder="Ej: almuerzo, milanesa de pollo con ensalada"></textarea>
     <div class="dos"><div><label for="cHora">Horario <span style="font-weight:400">(opcional)</span></label><input id="cHora" type="time"></div><div><label for="cKcal">Calorías <span style="font-weight:400">(opcional)</span></label><input id="cKcal" inputmode="decimal" placeholder="kcal"></div></div>
     <label for="cProteina">Proteína del día <span style="font-weight:400">(g, opcional)</span></label><input id="cProteina" inputmode="decimal" placeholder="g">
@@ -504,6 +505,13 @@ function vComida() {
     ${hoy.length ? `<div class="tarjeta lista-simple">${hoy.map(c => `<div class="it"><span>${c.horario ? `<span class="hora">${esc(c.horario)}</span>` : ''}${esc(c.texto)}</span><span class="kcal">${c.calorias ? fmt(c.calorias) + ' kcal' : ''}</span></div>`).join('')}</div>`
       : '<p class="suave" style="margin:0 2px">Todavía no cargaste comidas hoy.</p>'}
     <p class="suave" style="font-size:13.5px;margin:4px 2px 0">La evaluación es orientativa. Si tenés una condición médica, consultá con una nutricionista deportóloga.</p>`;
+}
+// Objetivo alimentario de la persona (texto de nutricion.js, escrito por la nutricionista deportóloga).
+function tarjetaNutricion() {
+  const n = NUTRICION[S.usuario];
+  if (!n) return '';
+  return `<details class="tarjeta nutri"><summary><span class="ceja">Tu objetivo alimentario</span><h3>${esc(n.titulo)}</h3></summary>
+    ${[].concat(n.texto).map(p => `<p>${esc(p)}</p>`).join('')}</details>`;
 }
 const NOMBRE_CAT = { calorias: 'Calorías', proteina: 'Proteína', verduras: 'Verduras y fruta', carbohidratos: 'Carbohidratos', grasas: 'Grasas', ultraprocesados: 'Ultraprocesados', agua: 'Agua' };
 // Resultado de evaluarDia en tarjetas. Sin rojo: no es un error, es una evaluación.
@@ -803,7 +811,7 @@ const ACC = {
       const c = { fecha: ahora(), horario: $('#cHora').value, texto, calorias: num($('#cKcal').value) || '' };
       S.comidas.push(c); enviar('comida', c);
     }
-    const r = evaluarDia(estados, S.perfil.tono, { objetivo: S.perfil.objetivo, pesoKg: num(S.perfil.peso_kg), proteinaG: num($('#cProteina')?.value),
+    const r = evaluarDia(estados, S.perfil.tono, { usuario: S.usuario, perfil: S.perfil, objetivo: S.perfil.objetivo, pesoKg: num(S.perfil.peso_kg), proteinaG: num($('#cProteina')?.value),
       kcal: num($('#cKcal').value), kcalMantenimiento: num(S.perfil.kcal_mantenimiento) });
     UI.resultadoComida = r;
     if (Object.keys(estados).length) {
