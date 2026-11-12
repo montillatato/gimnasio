@@ -187,6 +187,18 @@ export const CATALOGO = [
     imagen: null,
   },
   {
+    id: 'EJ-047', nombre: 'Patada de glúteo en polea', patron: 'aislamiento', grupo: 'piernas',
+    musculos: ['gluteo'], secundarios: ['isquiotibiales'], volumen: { gluteo: 1 },
+    equipo: 'polea', nivel: 'principiante',
+    descripcion: 'De pie frente a la polea baja, con la tobillera enganchada en una pierna y las manos apoyadas en la máquina. Se lleva la pierna hacia atrás extendiendo la cadera y se vuelve lento.',
+    tecnica: ['Torso apenas inclinado adelante y manos apoyadas en la máquina', 'La pierna va hacia atrás desde la cadera, con la rodilla casi quieta', 'Parar cuando la cadera queda extendida: pasarse arquea la lumbar', 'Bajar en 2 segundos, sin dejar que la pesa toque'],
+    zonasCuidado: ['lumbar'], excluyeSi: [],
+    ajustes: { lumbar: 'Cortar el recorrido cuando la pierna queda alineada con el torso: más atrás lo hace la lumbar y no el glúteo. Abdomen firme toda la serie.' },
+    alternativas: ['EJ-006', 'EJ-041'],
+    justificacion: 'Extensión de cadera a una pierna sin flexionar la rodilla con carga: reemplaza a la zancada y a la búlgara cuando la rodilla no las tolera y mantiene el trabajo por lado. Es criterio del entrenador: no hay estudios que midan cuánto hace crecer el glúteo; se usa como complemento del hip thrust, no como base. La polea sube de a 5 kg: primero se suman repeticiones.',
+    imagen: null,
+  },
+  {
     id: 'EJ-009', nombre: 'Elevación de gemelos de pie', patron: 'aislamiento', grupo: 'piernas',
     musculos: ['gemelos'], secundarios: ['soleo'], volumen: { gemelos: 1 },
     equipo: 'maquina', nivel: 'principiante',
