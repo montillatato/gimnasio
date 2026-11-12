@@ -148,7 +148,7 @@ export const PLANES = {
       'Experiencia: 6 a 24 meses. Los RIR del plan van desde la primera semana; la primera sesión de cada ejercicio sirve para calibrar el peso.',
       'Duración estimada (con entrada en calor, series de aproximación y descansos): lunes 81 min; martes 53 más 30 a 35 de zona 2 (83 a 88); miércoles 84; jueves 79; viernes 50 más 35 de intervalos (85). Sábado, si vas, 40 a 60. Si un día la fuerza se alarga, el cardio se hace en el mínimo o se pasa al sábado: no se recorta la fuerza. Opcional el viernes para ganar tiempo: alternar una serie de press con una de remo, que sostiene o sube el volumen de carga en menos tiempo (Robbins y col., 2010; Paz y col., 2017).',
       'Comida: superávit chico (mantenimiento a +10%) y proteína de 1.6 a 2.2 g/kg para ganar músculo sin que se vea grasa. Con el cardio, el mantenimiento sube: si el peso no se mueve en 3–4 semanas, sumar una colación.',
-      'Nada de esto reemplaza una evaluación de kinesiología: se recomienda antes de subir cargas en rumano y prensa. Los intervalos son esfuerzo alto: con antecedentes cardíacos, o mareos o dolor de pecho al esforzarte, primero un control médico.',
+      'Nada de esto reemplaza una evaluación de kinesiología: se recomienda antes de subir cargas en rumano y prensa. Los intervalos son esfuerzo alto. Control cardiológico y análisis de sangre realizados el 15/9, con resultado normal: no hace falta un control previo. Si aparecen mareos o dolor de pecho al esforzarte, se corta y se consulta.',
     ],
   },
 
