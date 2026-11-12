@@ -302,6 +302,7 @@ function ir(v, volver) {
   S.vista = v; UI.panel = null;
   if (v === 'buzon') marcarLeidas();
   render();
+  if (v === 'buzon') { bajarBuzon(); return; }
   if (!restaurar) { window.scrollTo(0, 0); return; }
   const ds = document.querySelectorAll('#vista details');
   restaurar.abiertos.forEach((o, i) => { if (o && ds[i]) ds[i].open = true; });
@@ -639,14 +640,20 @@ function hiloAjeno(b) {
     <div class="burbuja yo" style="white-space:pre-line">${esc(b.texto)}</div></div>`;
 }
 function vBuzon() {
-  const l = [...S.buzon].reverse();
+  const l = [...S.buzon]; // cronológico: la más vieja arriba, la más nueva abajo
   const aj = consultasAjenas();
-  return (aj.length ? `<div class="seccion-tit"><h3>Consultas sin responder (${aj.length})</h3></div>${[...aj].reverse().map(hiloAjeno).join('')}` : '') + `<div class="tarjeta redactar"><h3 style="margin:0">Escribile al entrenador</h3>
+  return (aj.length ? `<div class="seccion-tit"><h3>Consultas sin responder (${aj.length})</h3></div>${[...aj].reverse().map(hiloAjeno).join('')}` : '')
+    + (l.length ? '' : '<p class="suave" style="margin:0 2px">Todavía no hay mensajes. Las respuestas del entrenador aparecen acá.</p>')
+    + l.map(b => hiloBuzon(b, mayusc(b.tipo))).join('')
+    + `<div class="redactar chat-redactar">
     <select id="bTipo" aria-label="Tipo de mensaje"><option value="consulta">Consulta</option><option value="sugerencia">Sugerencia</option><option value="reporte de error">Reporte de error</option></select>
-    <textarea id="bTexto" aria-label="Mensaje" placeholder="Ej: ¿puedo cambiar el día de piernas al miércoles?"></textarea>
-    <button class="b principal" data-acc="enviarBuzon">${ic('enviar')}Enviar</button></div>
-    ${l.length ? '<div class="seccion-tit"><h3>Conversaciones</h3></div>' : '<p class="suave" style="margin:0 2px">Todavía no hay mensajes. Las respuestas del entrenador aparecen acá.</p>'}
-    ${l.map(b => hiloBuzon(b, mayusc(b.tipo))).join('')}`;
+    <div class="redactar-fila"><textarea id="bTexto" rows="1" aria-label="Mensaje" placeholder="Escribile al entrenador"></textarea>
+    <button class="b principal" data-acc="enviarBuzon" aria-label="Enviar">${ic('enviar')}Enviar</button></div></div>`;
+}
+// Baja la vista hasta el último mensaje del Buzón.
+function bajarBuzon() {
+  const go = () => window.scrollTo(0, document.documentElement.scrollHeight);
+  go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); });
 }
 
 function vPerfil() {
@@ -825,7 +832,7 @@ const ACC = {
     const texto = $('#bTexto').value.trim();
     if (!texto) return;
     const b = { fecha: ahora(), usuario: S.usuario, tipo: $('#bTipo').value, texto, estado: 'pendiente', leida: 'no', respuesta: '' };
-    S.buzon.push(b); enviar('buzon', { fecha: b.fecha, tipo: b.tipo, texto }); render();
+    S.buzon.push(b); enviar('buzon', { fecha: b.fecha, tipo: b.tipo, texto }); render(); bajarBuzon();
   },
   enviarValidacion: () => {
     const puntos = plan().aValidar || [];
