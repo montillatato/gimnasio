@@ -31,7 +31,7 @@ function guardarUsuario(u) { try { localStorage.setItem(CLAVE_USR, u); } catch (
 function cargarCache(usuario) {
   try {
     const c = JSON.parse(localStorage.getItem(CLAVE_CACHE) || 'null');
-    if (c && c.usuario && (!usuario || c.usuario === usuario)) S = { ...S, ...c, vista: 'hoy' };
+    if (c && c.usuario && (!usuario || c.usuario === usuario)) S = { ...S, ...c, vista: 'hoy', enviando: false };
     else if (usuario) S = { ...S, usuario };
   } catch (e) { if (usuario) S = { ...S, usuario }; }
 }
