@@ -153,8 +153,9 @@ async function vaciarCola() {
       S.cola.shift();
       guardarCache();
     }
-  } catch (e) { UI.msg = 'Sin conexión con el servidor. Se reintenta solo.'; }
+  } catch (e) { UI.msg = 'No se pudo enviar: ' + String((e && e.message) || e).slice(0, 160); }
   S.enviando = false;
+  if (S.cola.length) render();
 }
 async function sincronizar() {
   if (!servidorListo()) return;
