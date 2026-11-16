@@ -641,4 +641,4 @@ export const CATALOGO = [
 export const ZONAS = ['rodilla', 'lumbar', 'cervical', 'hombro'];
 
 // Grupos musculares que cuentan para el volumen semanal (DISENO.md §5.1).
-export const GRUPOS_VOLUMEN = ['pecho', 'espalda', 'hombros', 'biceps', 'triceps', 'cuadriceps', 'isquiotibiales', 'gluteo', 'gemelos', 'core'];
+export const GRUPOS_VOLUMEN = ['pecho', 'espalda', 'hombros', 'biceps', 'triceps', 'cuadriceps', 'isquiotibiales', 'gluteo', 'gemelos', 'core', 'aductores'];
