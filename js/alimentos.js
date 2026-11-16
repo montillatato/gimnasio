@@ -24,23 +24,24 @@ const BASE = [
   ['huevo_frito', 'Huevo frito', 13.4, 185, 'BEDCA 759: Huevo de gallina, frito', { sin: ['huevo frito', 'huevo a la plancha'], porcion: 50, unidad: 50 }],
   ['huevos_revueltos', 'Huevos revueltos', 10.2, 228, 'BEDCA 761: Huevo de gallina, revuelto, con mantequilla', { sin: ['huevos revueltos', 'huevo revuelto', 'revuelto de huevo', 'revuelto'], porcion: 120, unidad: 60 }],
   ['clara', 'Clara de huevo', 10.5, 45, 'BEDCA 1173: Huevo de gallina, clara, cruda', { sin: ['clara', 'clara de huevo'], porcion: 33, unidad: 33 }],
+  ['yema', 'Yema de huevo', 15.9, 322, 'Estimado: USDA FoodData Central SR Legacy 01125, Egg, yolk, raw, fresh', { sin: ['yema', 'yema de huevo'], porcion: 17, unidad: 17, estimado: true, nota: 'Una yema de huevo mediano pesa unos 17 g.' }],
   ['tortilla_francesa', 'Tortilla francesa', 14.6, 170, 'BEDCA 779: Tortilla, a la francesa', { sin: ['tortilla francesa', 'tortilla a la francesa', 'omelette', 'omelet', 'tortilla de huevo'], porcion: 110 }],
   // Aves
-  ['pechuga_pollo', 'Pechuga de pollo a la plancha', 22.2, 145, 'BEDCA 2297: Pollo, pechuga, plancha', { sin: ['pechuga', 'pechuga de pollo', 'pechuga a la plancha', 'pollo a la plancha', 'pollo plancha', 'filete de pollo', 'suprema', 'suprema de pollo'], porcion: 150, unidad: 150 }],
+  ['pechuga_pollo', 'Pechuga de pollo a la plancha', 22.2, 145, 'BEDCA 2297: Pollo, pechuga, plancha', { sin: ['pechuga', 'pechuga de pollo', 'pechuga a la plancha', 'pollo a la plancha', 'pollo plancha', ['filete de pollo', 85], ['bife de pollo', 85], 'suprema', 'suprema de pollo'], porcion: 120, unidad: 120, nota: 'Pesos ya cocinados: una pechuga (media) de unos 160 g crudos queda en 120 g; un filete de 110 g crudos, en 85 g.' }],
   ['pechuga_pollo_cruda', 'Pechuga de pollo (cruda, para recetas)', 23.1, 104, 'BEDCA 994: Pollo, pechuga, con piel, crudo', {}],
   ['pollo_asado', 'Pollo asado', 32.6, 177, 'BEDCA 980: Pollo, entero, con piel, asado', { sin: ['pollo', 'pollo asado', 'pollo al horno', 'pollo con piel', 'cuarto de pollo'], porcion: 150 }],
   ['muslo_pollo', 'Muslo de pollo asado', 26.3, 226, 'BEDCA 992: Pollo, muslo, con piel, asado', { sin: ['muslo', 'muslo de pollo', 'contramuslo', 'pata muslo', 'pata de pollo'], porcion: 100, unidad: 100 }],
   ['pollo_empanado', 'Pollo empanado frito', 17.6, 227, 'BEDCA 2290: Pollo empanado, frito', { sin: ['pollo empanado', 'pollo rebozado', 'pollo frito', 'nuggets', 'nuggets de pollo'], porcion: 120 }],
-  ['pavo', 'Pechuga de pavo a la plancha', 29.9, 145, 'BEDCA 990: Pavo, pechuga, sin piel, a la plancha', { sin: ['pavo', 'pechuga de pavo', 'pavo a la plancha', 'filete de pavo'], porcion: 150, unidad: 150 }],
+  ['pavo', 'Pechuga de pavo a la plancha', 29.9, 145, 'BEDCA 990: Pavo, pechuga, sin piel, a la plancha', { sin: ['pavo', 'pechuga de pavo', 'pavo a la plancha', 'filete de pavo', 'bife de pavo', 'escalope de pavo'], porcion: 100, unidad: 85, nota: 'Pesos ya cocinados: un filete o bife de 110 g crudos queda en unos 85 g a la plancha.' }],
   ['pavo_fiambre', 'Fiambre de pavo', 15.3, 147, 'BEDCA 2286: Pavo, fiambre', { sin: ['fiambre de pavo', 'pavo en lonchas', 'lonchas de pavo', 'pechuga de pavo en lonchas', 'jamon de pavo'], porcion: 45, medidas: { loncha: 15 } }],
   // Carnes
-  ['ternera', 'Carne de ternera asada', 29.5, 221, 'BEDCA 989: Ternera, parte s/e, asada', { sin: ['ternera', 'carne', 'carne de vaca', 'carne vacuna', 'carne de ternera', 'carne asada', 'carne a la plancha', 'filete', 'filete de ternera', 'bistec', 'bife', 'bife de chorizo', 'churrasco', 'entrecot', 'vacio', 'entrana', 'nalga', 'cuadril', 'peceto'], porcion: 150, unidad: 150 }],
-  ['solomillo', 'Solomillo de ternera asado', 28.4, 156, 'BEDCA 984: Ternera, solomillo, asado', { sin: ['solomillo', 'solomillo de ternera', 'lomo de ternera', 'lomo vacuno', 'bife de lomo'], porcion: 150, unidad: 150 }],
+  ['ternera', 'Carne de ternera asada', 29.5, 221, 'BEDCA 989: Ternera, parte s/e, asada', { sin: ['ternera', 'carne', 'carne de vaca', 'carne vacuna', 'carne de ternera', 'carne asada', 'carne a la plancha', ['filete', 90], ['filete de ternera', 90], 'bistec', 'bife', ['bife de chorizo', 200], 'churrasco', 'entrecot', 'vacio', 'entrana', 'nalga', 'cuadril', 'peceto'], porcion: 120, unidad: 120, nota: 'Pesos ya cocinados: un bife de unos 160 g crudos queda en 120 g; un filete fino de 120 g crudos, en 90 g.' }],
+  ['solomillo', 'Solomillo de ternera asado', 28.4, 156, 'BEDCA 984: Ternera, solomillo, asado', { sin: ['solomillo', 'solomillo de ternera', 'lomo de ternera', 'lomo vacuno', 'bife de lomo'], porcion: 120, unidad: 120 }],
   ['ternera_magra_cruda', 'Ternera magra (cruda, para recetas)', 20.2, 109, 'BEDCA 1029: Ternera, solomillo, sin grasa, crudo', {}],
   ['ternera_cruda', 'Ternera con grasa (cruda, para recetas)', 16.7, 254, 'BEDCA 2315: Ternera, parte sin especificar, cruda, con grasa separable', {}],
   ['costilla_ternera_cruda', 'Costilla de ternera (cruda, para recetas)', 20, 140, 'BEDCA 1030: Ternera, costilla, cruda', {}],
   ['carne_picada_cruda', 'Carne picada (cruda, para recetas)', 15.2, 243, 'BEDCA 2680: Carne picada', {}],
-  ['cerdo', 'Lomo de cerdo asado', 27, 236, 'BEDCA 688: Cerdo, lomo, asado', { sin: ['cerdo', 'lomo', 'lomo de cerdo', 'cinta de lomo', 'chuleta', 'chuleta de cerdo', 'carne de cerdo', 'filete de cerdo', 'solomillo de cerdo'], porcion: 150, unidad: 150 }],
+  ['cerdo', 'Lomo de cerdo asado', 27, 236, 'BEDCA 688: Cerdo, lomo, asado', { sin: ['cerdo', 'lomo', 'lomo de cerdo', 'cinta de lomo', 'chuleta', 'chuleta de cerdo', 'carne de cerdo', 'filete de cerdo', 'bife de cerdo', 'solomillo de cerdo'], porcion: 120, unidad: 100 }],
   ['panceta_cruda', 'Panceta (cruda, para recetas)', 12.5, 465, 'BEDCA 2260: Cerdo, panceta, cruda', {}],
   // Fiambres y embutidos
   ['jamon_cocido', 'Jamón cocido', 21, 113, 'BEDCA 965: Jamón cocido, categoría s/e', { sin: ['jamon cocido', 'jamon york', 'jamon de york', 'fiambre de jamon'], porcion: 40, medidas: { loncha: 20 } }],
@@ -56,7 +57,7 @@ const BASE = [
   ['merluza', 'Merluza', 11.9, 64, 'BEDCA 2347: Merluza fresca', { sin: ['merluza', 'pescado', 'pescado blanco', 'filete de merluza', 'filete de pescado', 'pescadilla'], porcion: 150, unidad: 150 }],
   ['merluza_rebozada', 'Merluza rebozada frita', 10.7, 149, 'BEDCA 2348: Merluza, rebozada, frita', { sin: ['merluza rebozada', 'pescado rebozado', 'pescado frito', 'milanesa de merluza', 'milanesa de pescado'], porcion: 120, unidad: 120 }],
   ['bacalao', 'Bacalao al horno', 22.1, 99, 'BEDCA 795: Bacalao, fresco, al horno', { sin: ['bacalao'], porcion: 150 }],
-  ['salmon', 'Salmón a la plancha', 20.2, 179, 'BEDCA 2628: Salmón, plancha', { sin: ['salmon', 'filete de salmon'], porcion: 150, unidad: 150 }],
+  ['salmon', 'Salmón a la plancha', 20.2, 179, 'BEDCA 2628: Salmón, plancha', { sin: ['salmon', 'filete de salmon'], porcion: 125, unidad: 125 }],
   ['sardinas', 'Sardinas en aceite (lata)', 23.9, 237, 'BEDCA 2632: Sardina, enlatada, en aceite, escurrida', { sin: ['sardina', 'sardinas en lata', 'sardinillas'], porcion: 60, medidas: { lata: 60 } }],
   ['gambas', 'Gambas o langostinos hervidos', 19.8, 95, 'BEDCA 2337: Gamba, hervida', { sin: ['gamba', 'langostino', 'camaron'], porcion: 100 }],
   // Lácteos
@@ -67,6 +68,7 @@ const BASE = [
   ['yogur_desnatado', 'Yogur desnatado natural', 4.3, 46, 'BEDCA 2530: Yogur, desnatado, sabor natural', { sin: ['yogur desnatado', 'yogur natural desnatado', 'yogur descremado', 'yogur light'], porcion: 125, unidad: 125 }],
   ['yogur_sabores', 'Yogur de sabores', 5.3, 64, 'BEDCA 2532: Yogur, desnatado, aromatizado sabor s/e', { sin: ['yogur de sabores', 'yogur de sabor', 'yogur de fresa', 'yogur de vainilla', 'yogur de frutas', 'yogur con frutas'], porcion: 125, unidad: 125 }],
   ['yogur_liquido', 'Yogur líquido', 3, 70, 'BEDCA 1133: Yogur líquido, natural, azucarado', { sin: ['yogur liquido', 'yogur bebible'], porcion: 200, unidad: 200 }],
+  ['yogur_proteico', 'Yogur o postre proteico', 9.4, 58, 'Estimado: valor típico de etiqueta de yogur alto en proteína (unos 15 g de proteína y 92 kcal por envase de 160 g); no está en BEDCA', { sin: ['yogur proteico', 'yogur alto en proteina', 'yogur con proteina', 'yogur high protein', 'postre proteico', 'yopro', 'oikos pro'], porcion: 160, unidad: 160, estimado: true, nota: 'Cambia según la marca: si la etiqueta dice otra cosa, escribí los gramos de proteína en "Proteína del día".' }],
   ['yogur_griego', 'Yogur griego', 6.4, 138, 'BEDCA 2520: Yogur griego', { sin: ['yogur griego'], porcion: 125, unidad: 125 }],
   ['queso_fresco', 'Queso fresco', 12.4, 197, 'BEDCA 2507: Queso fresco de burgos', { sin: ['queso fresco', 'queso de burgos'], porcion: 60 }],
   ['mozzarella', 'Mozzarella', 19.5, 222, 'BEDCA 2510: Queso mozzarella', { sin: ['mozzarella', 'muzzarella', 'mozarella', 'muzarela', 'muzza'], porcion: 30 }],
@@ -75,19 +77,21 @@ const BASE = [
   ['queso_curado', 'Queso curado (manchego)', 28.8, 388, 'BEDCA 2508: Queso manchego', { sin: ['queso manchego', 'manchego', 'queso curado', 'queso viejo'], porcion: 30, medidas: { loncha: 15 } }],
   ['queso_rallado', 'Queso rallado', 26.9, 393, 'BEDCA 2513: Queso rallado, genérico', { sin: ['queso rallado', 'parmesano', 'queso parmesano', 'reggianito'], porcion: 10, medidas: { cucharada: 7 } }],
   ['queso_untar', 'Queso para untar', 15.6, 359, 'BEDCA 2511: Queso para untar', { sin: ['queso para untar', 'queso de untar', 'queso crema', 'queso untable', 'philadelphia', 'queso blanco'], porcion: 20, medidas: { cucharada: 20 } }],
+  ['cottage', 'Queso cottage', 11.1, 98, 'Estimado: USDA FoodData Central SR Legacy 01012, Cheese, cottage, creamed (BEDCA no tiene queso cottage)', { sin: ['cottage', 'queso cottage'], porcion: 100, medidas: { cucharada: 30 }, estimado: true }],
   ['requeson', 'Requesón o ricota', 12.3, 101, 'BEDCA 2517: Requesón', { sin: ['requeson', 'ricota', 'ricotta'], porcion: 60 }],
   // Panes, cereales y harinas
   ['pan', 'Pan blanco de barra', 8.3, 239, 'BEDCA 2160: Pan blanco, de barra', { sin: ['pan', 'pan blanco', 'pan de barra', ['barra de pan', 250], 'baguette', 'pan frances', 'pan casero', 'pan de pueblo', 'chapata'], porcion: 60, unidad: 60, medidas: { rebanada: 30 } }],
   ['pan_integral', 'Pan integral', 10.9, 250, 'BEDCA 2163: Pan integral', { sin: ['pan integral', 'pan multicereal'], porcion: 60, unidad: 60, medidas: { rebanada: 30 } }],
   ['pan_molde', 'Pan de molde', 7.3, 248, 'BEDCA 2161: Pan blanco, de molde, tostado', { sin: ['pan de molde', 'pan lactal', 'pan de sandwich'], porcion: 50, unidad: 25, medidas: { rebanada: 25 } }],
   ['pan_tostado', 'Tostada de pan', 10.1, 304, 'BEDCA 2165: Pan blanco, tostado', { sin: ['tostada', 'pan tostado', 'biscote', 'tostada de pan', 'tostada de pan integral', 'tostada integral'], porcion: 40, unidad: 40 }],
+  ['tortita_arroz', 'Tortita o tostada de arroz inflado', 8.2, 387, 'Estimado: USDA FoodData Central SR Legacy 19051, Snacks, rice cakes, brown rice, plain (BEDCA no la tiene)', { sin: ['tortita de arroz', 'tostada de arroz', 'galleta de arroz', 'galletita de arroz', 'galleta de arroz inflado'], porcion: 9, unidad: 9, estimado: true, nota: 'Una tortita pesa unos 9 g.' }],
   ['pan_rallado', 'Pan rallado (para recetas)', 8.5, 258, 'BEDCA 2171: Pan rallado', {}],
   ['pan_hamburguesa', 'Pan de hamburguesa', 7.5, 265, 'BEDCA 2174: Pan, tipo hamburguesa', { sin: ['pan de hamburguesa', 'pan de perrito', 'pan de pancho'], porcion: 60, unidad: 60 }],
   ['croissant', 'Croissant', 7.5, 406, 'BEDCA 2669: Croissant', { sin: ['croissant', 'cruasan'], porcion: 50, unidad: 50 }],
   ['galletas', 'Galletas tipo María', 7.1, 477, 'BEDCA 2675: Galletas tipo maria', { sin: ['galleta', 'galletas maria', 'galletita', 'galletitas dulces', 'galletas dulces'], porcion: 30, unidad: 7 }],
   ['galletas_saladas', 'Galletas saladas', 9.4, 408, 'BEDCA 2672: Galleta salada', { sin: ['galletas saladas', 'galleta salada', 'crackers', 'galletitas de agua', 'galletas de agua'], porcion: 30, unidad: 5 }],
   ['arroz_crudo', 'Arroz (crudo, para recetas)', 7, 386, 'BEDCA 2660: Arroz', {}],
-  ['arroz_integral', 'Arroz integral hervido', 2.6, 112, 'BEDCA 1009: Arroz integral, hervido', { sin: ['arroz integral'], porcion: 200, medidas: { taza: 160 } }],
+  ['arroz_integral', 'Arroz integral hervido', 2.6, 112, 'BEDCA 1009: Arroz integral, hervido', { sin: ['arroz integral'], porcion: 150, medidas: { taza: 160 } }],
   ['pasta', 'Pasta hervida', 4.7, 125, 'BEDCA 1072: Pasta alimenticia, con huevo, hervida', { sin: ['pasta', 'pasta hervida', 'fideo', 'macarron', 'espaguetis', 'espagueti', 'spaghetti', 'tallarin', 'tallarines', 'tirabuzon', 'mostachol', 'penne'], porcion: 200, medidas: { taza: 140 } }],
   ['pasta_cruda', 'Pasta seca (cruda)', 12.5, 352, 'BEDCA 1117: Pasta alimenticia, cruda', { sin: ['pasta cruda', 'pasta seca'], porcion: 80 }],
   ['avena', 'Copos de avena', 16.9, 399, 'BEDCA 1010: Avena, cruda', { sin: ['avena', 'copos de avena'], porcion: 40, medidas: { cucharada: 10 } }],
@@ -107,7 +111,7 @@ const BASE = [
   ['churros', 'Churros', 4.6, 358, 'BEDCA 2668: Churro', { sin: ['churro', 'porra'], porcion: 100, unidad: 20 }],
   ['flan', 'Flan de huevo', 4.8, 132, 'BEDCA 2486: Flan de huevo', { sin: ['flan', 'flan de huevo'], porcion: 100, unidad: 100 }],
   ['arroz_con_leche', 'Arroz con leche', 3.3, 92, 'BEDCA 2479: Arroz con leche', { sin: ['arroz con leche'], porcion: 150 }],
-  ['bizcocho', 'Bizcocho', 6.5, 381, 'BEDCA 2664: Bizcocho', { sin: ['bizcocho', 'bizcochuelo'], porcion: 60 }],
+  ['bizcocho', 'Bizcocho', 6.5, 381, 'BEDCA 2664: Bizcocho', { sin: ['bizcocho', 'bizcochuelo', 'budin', 'budin marmolado', 'bizcocho marmolado'], porcion: 60, nota: 'Una porción: una rebanada de unos 60 g.' }],
   ['magdalena', 'Magdalena', 6.1, 385, 'BEDCA 2678: Magdalena', { sin: ['magdalena', 'madalena', 'muffin'], porcion: 30, unidad: 30 }],
   ['donut', 'Donut', 6.1, 394, 'BEDCA 2670: Donut', { sin: ['donut', 'dona'], porcion: 50, unidad: 50 }],
   ['ensaimada', 'Ensaimada', 5.7, 456, 'BEDCA 2671: Ensaimada', { sin: ['ensaimada'], porcion: 60, unidad: 60 }],
@@ -130,12 +134,13 @@ const BASE = [
   ['lechuga', 'Lechuga', 1.1, 16, 'BEDCA 2399: Lechuga', { sin: ['lechuga'], porcion: 50 }],
   ['tomate', 'Tomate', 0.9, 19, 'BEDCA 2421: Tomate', { sin: ['tomate'], porcion: 120, unidad: 120 }],
   ['zanahoria', 'Zanahoria', 0.8, 34, 'BEDCA 2424: Zanahoria, cruda', { sin: ['zanahoria'], porcion: 70, unidad: 70 }],
-  ['ensalada', 'Ensalada verde (sin aliñar)', 1.1, 19, 'BEDCA 2389: Ensalada', { sin: ['ensalada', 'ensalada verde', 'ensalada de lechuga', 'lechuga y tomate', 'ensalada de lechuga y tomate'], porcion: 150 }],
+  ['remolacha', 'Remolacha', 1.6, 43, 'Estimado: USDA FoodData Central SR Legacy 11080, Beets, raw', { sin: ['remolacha', 'betarraga', 'beterraga'], porcion: 80, unidad: 80, estimado: true }],
+  ['ensalada_sin_alinar', 'Ensalada verde sin aliñar', 1.1, 19, 'BEDCA 2389: Ensalada', { sin: ['ensalada sin alinar', 'ensalada sin aceite', 'ensalada sin alino'], porcion: 150 }],
   ['patata_cruda', 'Patata (cruda, para recetas)', 2.2, 72, 'BEDCA 2403: Patata, cruda', {}],
-  ['patata', 'Patata hervida', 2.4, 75, 'BEDCA 2404: Patata, hervida', { sin: ['patata', 'papa', 'patata hervida', 'patata cocida', 'papa hervida'], porcion: 200, unidad: 150 }],
+  ['patata', 'Patata hervida', 2.4, 75, 'BEDCA 2404: Patata, hervida', { sin: ['patata', 'papa', 'patata hervida', 'patata cocida', 'papa hervida'], porcion: 150, unidad: 150 }],
   ['patatas_fritas', 'Patatas fritas', 3.8, 289, 'BEDCA 883: Patata, frita con aceite s/e, sin sal', { sin: ['patatas fritas', 'papas fritas', 'patata frita', 'papa frita'], porcion: 150 }],
   ['patatas_chips', 'Patatas chips', 6.5, 536, 'BEDCA 2594: Patatas, fritas, chips', { sin: ['patatas chips', 'chips', 'patatas de bolsa', 'papas fritas de bolsa', 'papitas'], porcion: 30 }],
-  ['pure', 'Puré de patata', 2.2, 94, 'BEDCA 887: Puré, de patata, con leche', { sin: ['pure', 'pure de patata', 'pure de papa'], porcion: 200 }],
+  ['pure', 'Puré de patata', 2.2, 94, 'BEDCA 887: Puré, de patata, con leche', { sin: ['pure', 'pure de patata', 'pure de papa'], porcion: 150 }],
   ['boniato', 'Boniato o batata', 1.2, 101, 'BEDCA 731: Boniato, crudo', { sin: ['boniato', 'batata', 'camote'], porcion: 200, unidad: 200, estimado: true, nota: 'Valor del boniato crudo; asado concentra un poco más las calorías.' }],
   ['calabaza_cruda', 'Calabaza (cruda, para recetas)', 1.2, 32, 'BEDCA 2378: Calabaza, cruda', {}],
   ['calabaza', 'Calabaza hervida', 0.6, 12, 'BEDCA 1183: Calabaza, hervida', { sin: ['calabaza', 'zapallo', 'pure de calabaza', 'pure de zapallo'], porcion: 200 }],
@@ -205,7 +210,7 @@ const BASE = [
 // opciones: sin, unidad (g de una unidad hecha), medidas, nota. Todas las recetas son estimadas (proporciones típicas).
 const RECETAS = [
   // Cocciones (rendimiento: cuánto pesa cocido lo que entra crudo)
-  ['arroz', 'Arroz blanco hervido', 200, [['arroz_crudo', 71]], { sin: ['arroz', 'arroz blanco', 'arroz hervido', 'arroz cocido'], medidas: { taza: 160 }, nota: 'Arroz crudo de BEDCA con rendimiento ×2,8. El dato de BEDCA "arroz hervido" coincide con el crudo y no se usa.' }],
+  ['arroz', 'Arroz blanco hervido', 150, [['arroz_crudo', 54]], { sin: ['arroz', 'arroz blanco', 'arroz hervido', 'arroz cocido'], medidas: { taza: 160 }, nota: 'Porción de guarnición: 54 g crudos. Arroz crudo de BEDCA con rendimiento ×2,8. El dato de BEDCA "arroz hervido" coincide con el crudo y no se usa.' }],
   ['lentejas', 'Lentejas cocidas', 200, [['lentejas_secas', 80]], { sin: ['lenteja', 'lentejas cocidas'], nota: 'Lentejas secas de BEDCA con rendimiento ×2,5 (el dato "hervida" de BEDCA coincide con el seco).' }],
   ['garbanzos', 'Garbanzos cocidos', 200, [['garbanzos_secos', 83]], { sin: ['garbanzo', 'garbanzos cocidos'], nota: 'Garbanzos secos de BEDCA con rendimiento ×2,4.' }],
   ['alubias', 'Alubias o porotos cocidos', 200, [['alubias_secas', 80]], { sin: ['alubia', 'alubias blancas', 'judias', 'judias blancas', 'judias pintas', 'frijol', 'poroto'], nota: 'Alubias secas de BEDCA con rendimiento ×2,5.' }],
@@ -235,6 +240,9 @@ const RECETAS = [
   ['sandwich_mixto', 'Sándwich de jamón y queso', 100, [['pan_molde', 50], ['jamon_cocido', 25], ['queso_tierno', 20], ['mantequilla', 5]], { sin: ['sandwich', 'sandwich mixto', 'sandwich de jamon y queso', 'sanguche de jamon y queso', 'tostado', 'tostado de jamon y queso', 'mixto', 'bikini'], unidad: 100 }],
   ['bocadillo_jamon', 'Bocadillo de jamón', 140, [['pan', 100], ['jamon_serrano', 40]], { sin: ['bocadillo', 'bocadillo de jamon', 'bocadillo de jamon serrano', 'bocata', 'bocata de jamon'], unidad: 140 }],
   ['pan_con_tomate', 'Tostada con tomate y aceite', 95, [['pan', 60], ['tomate', 30], ['aceite', 5]], { sin: ['pan con tomate', 'pan con tomate y aceite', 'tostada con tomate', 'tostada con tomate y aceite', 'pan tumaca'], unidad: 95 }],
+  ['ensalada', 'Ensalada verde aliñada', 158, [['lechuga', 70], ['tomate', 70], ['cebolla', 10], ['aceite', 8]], { sin: ['ensalada', 'ensalada verde', 'ensalada de lechuga', 'lechuga y tomate', 'ensalada de lechuga y tomate'], nota: 'Lechuga, tomate y cebolla con una cucharada rasa de aceite (8 g). Sin aceite: "ensalada sin aliñar".' }],
+  ['ensalada_papa', 'Ensalada de papa', 158, [['patata', 150], ['aceite', 8]], { sin: ['ensalada de papa', 'ensalada de patata'], nota: 'Papa hervida con una cucharada rasa de aceite. Con mayonesa, escribila aparte.' }],
+  ['guacamole', 'Guacamole', 30, [['aguacate', 26], ['tomate', 3], ['cebolla', 1]], { sin: ['guacamole'], medidas: { cucharada: 15 }, nota: 'Palta o aguacate con un poco de tomate y cebolla. Una cucharada: 15 g.' }],
   ['ensalada_mixta', 'Ensalada mixta', 200, [['lechuga', 60], ['tomate', 60], ['cebolla', 15], ['atun', 30], ['huevo', 25], ['aceite', 10]], { sin: ['ensalada mixta', 'ensalada completa'], nota: 'Lechuga, tomate, cebolla, atún, huevo y una cucharada de aceite.' }],
 ];
 
@@ -314,7 +322,12 @@ const MEDIDAS = {
 const MEDIDA_GENERAL = { taza: 200, vaso: 200, copa: 150, cucharada: 10, cucharadita: 5, scoop: 30, cana: 200, tercio: 330, botellin: 250, pinta: 500, onza: 6, bola: 60, punado: 30, sobre: 8 };
 const NUM = '(\\d+(?:\\.\\d+)?|\\d+\\/\\d+|un par de|un par|una|uno|un|media|medio|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce)';
 const MED = '(' + Object.keys(MEDIDAS).sort((a, b) => b.length - a.length).map(escRe).join('|') + ')';
-const RE_PREFIJO = new RegExp('(?:^|[^a-z0-9])' + NUM + '\\s*(?:' + MED + '(?![a-z0-9]))?\\s*(?:de(?:l)?\\s+)?(?:la\\s+|el\\s+|los\\s+|las\\s+)?$');
+// Grupos: 1 número, 2 medida, 3 tamaño ("una porción chica de"), 4 "de" (sin medida: "una de queso" repite la medida anterior).
+const RE_PREFIJO = new RegExp('(?:^|[^a-z0-9])' + NUM + '\\s*(?:' + MED + '(?![a-z0-9]))?\\s*(?:(chic[oa]s?|pequen[oa]s?|median[oa]s?|grandes?)\\s+)?(de(?:l)?\\s+)?(?:la\\s+|el\\s+|los\\s+|las\\s+)?$');
+const TAMANO = (t) => !t ? 1 : /^(chic|pequen)/.test(t) ? 0.7 : /^grande/.test(t) ? 1.5 : 1;
+// "ensalada de tomate, lechuga…": la ensalada genérica no suma verduras propias, solo el aliño.
+const ALINO_G = 8;
+const ACEITES = new Set(['aceite', 'aceite_girasol', 'mayonesa']);
 const RE_SUFIJO = /^\s*(?:x\s*(\d+(?:\.\d+)?)(?![a-z0-9])|\(?\s*(\d+(?:\.\d+)?)\s*(kg|kilos?|gramos?|grs?|g|ml|cc|l)(?![a-z0-9])\s*\)?)/;
 
 const numero = (t) => {
@@ -326,14 +339,15 @@ const numero = (t) => {
 const VACIAS = new Set(('de del la las el los lo con sin al a en un una unos unas uno y o u mi mis su sus que para por poco poca pocos pocas algo algun alguna mas menos muy bien '
   + 'medio media mitad par casero casera caseros caseras natural tipo estilo casa bar restaurante menu dia hoy ayer manana tarde noche '
   + 'desayuno almuerzo comida cena merienda colacion tentempie snack aperitivo picoteo pre post entreno entrenamiento entrenar gimnasio gym antes despues durante '
-  + 'comi tome bebi desayune almorce cene meriende picotee '
+  + 'comi tome bebi desayune almorce cene meriende picotee postre habre tomado hasta ahora aprox aproximadamente danone '
   + 'plato platos porcion porciones racion raciones vaso vasos taza tazas grande grandes mediano mediana chico chica pequeno pequena pequenos pequenas '
   + 'horno plancha parrilla hervido hervida hervidos hervidas cocido cocida cocidos cocidas asada asados asadas vapor salteado salteada salteados salteadas '
   + 'frito frita fritos fritas grill sarten microondas airfryer freidora integral entero entera enteros enteras '
   + 'sal pimienta oregano especias condimento condimentos limon vinagre ajo hielo edulcorante sacarina stevia perejil albahaca romero comino pimenton').split(' '));
 
 // Busca todos los alimentos de una parte del texto y su cantidad.
-function analizarParte(norm, orig, ini, fin) {
+// estado: { medida } se comparte entre las partes de una misma comida ("una cucharada de guacamole, una de cottage").
+function analizarParte(norm, orig, ini, fin, estado = {}) {
   const texto = norm.slice(ini, fin);
   const usado = []; // tramos [desde, hasta) consumidos (alimentos y cantidades), relativos a la parte
   const encontrados = [];
@@ -360,9 +374,11 @@ function analizarParte(norm, orig, ini, fin) {
     };
     const contar = (n) => [n * gUnidad, `${r1(n)} ${(sin.gUnidad || a.unidadG) ? (n === 1 ? 'unidad' : 'unidades') : (n === 1 ? 'porción' : 'porciones')} (${Math.round(n * gUnidad)} g)`];
     if (pre) {
-      const n = numero(pre[1]);
+      const n = numero(pre[1]) * TAMANO(pre[3]);
       if (n > 0) {
-        [gramos, cantidad] = pre[2] ? conMedida(n, pre[2]) : contar(n);
+        const med = pre[2] || (pre[4] && estado.medida) || '';
+        [gramos, cantidad] = med ? conMedida(n, med) : contar(n);
+        if (pre[2]) estado.medida = pre[2];
         dIni = previo + pre.index + (pre[0].match(/^[^a-z0-9]/) ? 1 : 0);
       }
     }
@@ -374,10 +390,28 @@ function analizarParte(norm, orig, ini, fin) {
     if (!gramos) { gramos = sin.gUnidad || a.porcionG; cantidad = `${sin.gUnidad ? '1 unidad' : 'porción típica'} (${gramos} g)`; }
     usado.push([dIni, dFin]);
     encontrados.push({ nombre: a.nombre, clave: a.clave, cantidad, gramos: r1(gramos),
-      proteinaG: a.p100 * gramos / 100, kcal: a.kcal100 * gramos / 100, estimado: a.estimado });
+      proteinaG: a.p100 * gramos / 100, kcal: a.kcal100 * gramos / 100, estimado: a.estimado, _desde: dIni, _hasta: hasta });
     previo = dFin;
     RE_ALIMENTO.lastIndex = dFin;
   }
+  // Ensalada genérica seguida de lo que lleva ("ensalada de tomate", "ensalada lechuga y tomate", "ensalada con aceite"):
+  // las verduras ya se cuentan aparte, así que la genérica no suma las suyas.
+  const hayAceite = encontrados.some(e => ACEITES.has(e.clave));
+  for (let i = encontrados.length - 2; i >= 0; i--) {
+    const e = encontrados[i], sig = encontrados[i + 1];
+    if (e.clave !== 'ensalada' || !/^\s*(?:de|con)?\s*$/.test(texto.slice(e._hasta, sig._desde))) continue;
+    const factor = e.gramos / TABLA.get('ensalada').porcionG;
+    if (sig.clave.startsWith('ensalada')) encontrados.splice(i, 1);
+    else if (ACEITES.has(sig.clave) || hayAceite) {
+      const s = TABLA.get('ensalada_sin_alinar');
+      encontrados[i] = { ...e, nombre: s.nombre, clave: s.clave, proteinaG: s.p100 * e.gramos / 100, kcal: s.kcal100 * e.gramos / 100, estimado: s.estimado };
+    } else {
+      const ac = TABLA.get('aceite'), g = ALINO_G * factor;
+      encontrados[i] = { ...e, nombre: 'Aliño de la ensalada (aceite)', clave: 'aceite', cantidad: `aliño típico (${r1(g)} g)`, gramos: r1(g),
+        proteinaG: 0, kcal: ac.kcal100 * g / 100, estimado: true };
+    }
+  }
+  for (const e of encontrados) { delete e._desde; delete e._hasta; }
   // Lo que sobra (sin palabras vacías ni números) no se pudo estimar.
   const sobra = [];
   const reP = /[a-z0-9]+/g; let w;
@@ -412,10 +446,10 @@ export function estimarComida(texto) {
   }
   partes.push([ini, norm.length]);
 
-  const reconocidos = [], noReconocidos = [];
+  const reconocidos = [], noReconocidos = [], estado = {};
   for (const [a, b] of partes) {
     if (!norm.slice(a, b).trim()) continue;
-    const { encontrados, sobra } = analizarParte(norm, orig, a, b);
+    const { encontrados, sobra } = analizarParte(norm, orig, a, b, estado);
     reconocidos.push(...encontrados);
     if (sobra) noReconocidos.push(sobra);
   }
