@@ -5,6 +5,7 @@ import { CATALOGO, ZONAS } from './catalogo.js';
 import { PLANES } from './planes.js';
 import { NUTRICION } from './nutricion.js';
 import { estimarComida, estimarDia, normalizar } from './alimentos.js';
+import { editarSerieLocal } from './series.js';
 import { PERFIL_BASE, perfilCompleto, perfilParaServidor, perfilDesdeServidor, decidirPerfil } from './perfil.js';
 
 const CLAVE_CACHE = 'gimnasio_cache_v1';
@@ -20,7 +21,7 @@ let S = {
   usuario: 'USR-001', perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [],
   buzon: [], buzonOtros: [], cola: [], alertas: [], sesion: null, vista: 'hoy', previa: 'hoy', ejId: null, enviando: false
 };
-let UI = { panel: null, activo: 0, resultadoComida: null, ejProgreso: null, msg: '' };
+let UI = { edSerie: null, panel: null, activo: 0, resultadoComida: null, ejProgreso: null, msg: '' };
 let temp = { restante: 0, total: 0, id: null };
 
 function usuarioGuardado() {
@@ -149,7 +150,8 @@ async function vaciarCola() {
   try {
     while (S.cola.length) {
       const it = S.cola[0];
-      await llamar(it.accion, it.datos);
+      try { await llamar(it.accion, it.datos); }
+      catch (e) { if (!(it.accion === 'editarSerie' && /Serie no encontrada/.test(String((e && e.message) || e)))) throw e; } // si el servidor aún no tiene esa serie, viaja con el guardado de la sesión
       S.cola.shift();
       guardarCache();
     }
@@ -434,7 +436,7 @@ function cardEj(e, i) {
     const pasoMas = incremento(c, num(en.peso)), pasoMenos = decremento(c, num(en.peso));
     const RIR_TXT = ['al fallo', 'quedaba 1', 'quedaban 2', 'o más'];
     html += `<div class="ej-cuerpo"><div class="nota">${ic('idea')}<span>${esc(fmtTxt(sg.motivo))}</span></div>`;
-    if (hechas.length) html += `<div class="hechas">${hechas.map(s => `<div class="hecha${Date.now() - Date.parse(s.fecha) < 1500 ? ' recien' : ''}"><span class="hn">${ic('check')}</span>
+    if (hechas.length) html += `<div class="hechas">${hechas.map(s => (UI.edSerie && UI.edSerie.id === e.id && UI.edSerie.n === Number(s.num_serie)) ? editorSerie(e, c) : `<div class="hecha${Date.now() - Date.parse(s.fecha) < 1500 ? ' recien' : ''}" data-acc="editarSerie" data-id="${e.id}" data-n="${s.num_serie}" role="button" tabindex="0" aria-label="Corregir serie ${s.num_serie}"><span class="hn">${ic('check')}</span>
       <span><b>${fmt(s.peso)} kg × ${s.reps}</b></span><span class="hd">Serie ${s.num_serie} · RIR ${s.rir}${s.dolor === 'sí' ? ' · dolor' : ''}</span></div>`).join('')}</div>`;
     html += `<div class="carga-grid">
       <div class="campo"><div class="campo-tit">Peso <span>kg</span></div><div class="num"><button class="b" data-acc="ajuste" data-id="${e.id}" data-c="peso" data-d="${-pasoMenos}" aria-label="Bajar ${fmtNum(pasoMenos)} kg">−<small>${fmtNum(pasoMenos)}</small></button><input inputmode="decimal" data-in="peso" data-id="${e.id}" value="${fmt(en.peso)}" aria-label="Peso en kg"><button class="b" data-acc="ajuste" data-id="${e.id}" data-c="peso" data-d="${pasoMas}" aria-label="Subir ${fmtNum(pasoMas)} kg">+<small>${fmtNum(pasoMas)}</small></button></div></div>
@@ -448,6 +450,17 @@ function cardEj(e, i) {
     html += '</div>';
   }
   return html + '</div>';
+}
+// Edición de una serie ya hecha: mismos controles que la serie actual.
+function editorSerie(e, c) {
+  const d = UI.edSerie, pasoMas = incremento(c, num(d.peso)), pasoMenos = decremento(c, num(d.peso));
+  const RIR_TXT = ['al fallo', 'quedaba 1', 'quedaban 2', 'o más'];
+  return `<div class="panel editor-serie"><span class="ceja" style="margin:0">Corregir serie ${d.n}</span><div class="carga-grid">
+    <div class="campo"><div class="campo-tit">Peso <span>kg</span></div><div class="num"><button class="b" data-acc="edAjuste" data-c="peso" data-d="${-pasoMenos}" aria-label="Bajar ${fmtNum(pasoMenos)} kg">−<small>${fmtNum(pasoMenos)}</small></button><input inputmode="decimal" data-ed="peso" value="${fmt(d.peso)}" aria-label="Peso en kg"><button class="b" data-acc="edAjuste" data-c="peso" data-d="${pasoMas}" aria-label="Subir ${fmtNum(pasoMas)} kg">+<small>${fmtNum(pasoMas)}</small></button></div></div>
+    <div class="campo"><div class="campo-tit">Reps <span>${e.reps[0]}–${e.reps[1]}</span></div><div class="num"><button class="b" data-acc="edAjuste" data-c="reps" data-d="-1" aria-label="Una repetición menos">−</button><input inputmode="numeric" data-ed="reps" value="${d.reps}" aria-label="Repeticiones"><button class="b" data-acc="edAjuste" data-c="reps" data-d="1" aria-label="Una repetición más">+</button></div></div></div>
+    <div><div class="rir-tit">RIR <span>repeticiones que te quedaban</span></div>
+    <div class="seg rir">${[0, 1, 2, 3].map(r => `<button class="b ${d.rir === r ? 'sel' : ''}" data-acc="edRir" data-r="${r}">${r === 3 ? '3+' : r}<small>${RIR_TXT[r]}</small></button>`).join('')}</div></div>
+    <div class="sec"><button class="b principal" data-acc="edGuardar">${ic('check')}Guardar cambios</button><button class="b" data-acc="edCancelar">Cancelar</button></div></div>`;
 }
 const se_entrada = {}; // peso, reps y RIR que se están cargando por ejercicio
 
@@ -777,13 +790,14 @@ const ACC = {
     }
     ir('sesion');
   },
-  abrir: (el) => { UI.activo = Number(el.dataset.i); UI.panel = null; render(); },
+  abrir: (el) => { UI.activo = Number(el.dataset.i); UI.panel = null; UI.edSerie = null; render(); },
   ajuste: (el) => {
     const en = se_entrada[el.dataset.id], c = el.dataset.c;
     en[c] = Math.max(0, Math.round((num(en[c]) + num(el.dataset.d)) * 10) / 10); render();
   },
   rir: (el) => { se_entrada[el.dataset.id].rir = Number(el.dataset.r); render(); },
   serie: (el) => {
+    UI.edSerie = null;
     const i = Number(el.dataset.i), e = S.sesion.ejercicios[i], en = se_entrada[e.id];
     const n = S.series.filter(s => s.sesion_id === S.sesion.id && s.ejercicio_id === e.id).length + 1;
     const fila = { sesion_id: S.sesion.id, fecha: ahora(), ejercicio_id: e.id, num_serie: n, peso: num(en.peso), reps: num(en.reps), rir: en.rir, dolor: 'no', zona: '', escala_dolor: '' };
@@ -791,6 +805,27 @@ const ACC = {
     S.sesion.pend = (S.sesion.pend || []).concat([fila]);
     if (n >= e.series && i < S.sesion.ejercicios.length - 1) UI.activo = i + 1;
     iniciarTemp(e.descanso || 90);
+    render();
+  },
+  editarSerie: (el) => {
+    const id = el.dataset.id, n = Number(el.dataset.n);
+    const s = S.series.find(x => x.sesion_id === S.sesion.id && x.ejercicio_id === id && Number(x.num_serie) === n);
+    if (!s) return;
+    UI.edSerie = { id, n, peso: num(s.peso), reps: num(s.reps), rir: Math.max(0, Math.min(3, num(s.rir))) }; render();
+  },
+  edAjuste: (el) => { const d = UI.edSerie, c = el.dataset.c; d[c] = Math.max(0, Math.round((num(d[c]) + num(el.dataset.d)) * 10) / 10); render(); },
+  edRir: (el) => { UI.edSerie.rir = Number(el.dataset.r); render(); },
+  edCancelar: () => { UI.edSerie = null; render(); },
+  edGuardar: () => {
+    const d = UI.edSerie; if (!d) return;
+    const ref = { sesion_id: S.sesion.id, ejercicio_id: d.id, num_serie: d.n };
+    const reg = editarSerieLocal(S.series, ref, { peso: d.peso, reps: d.reps, rir: d.rir });
+    UI.edSerie = null;
+    if (!reg) { UI.msg = 'No se encontró la serie para corregir.'; render(); UI.msg = ''; return; }
+    if (S.sesion.pend) S.sesion.pend = S.sesion.pend.map(p => (p.sesion_id === reg.sesion_id && p.ejercicio_id === reg.ejercicio_id && Number(p.num_serie) === reg.num_serie) ? { ...p, peso: reg.peso, reps: reg.reps, rir: reg.rir } : p);
+    guardarCache();
+    // Las series de la sesión en curso suben completas (ya corregidas) al terminarla; si el servidor todavía no las tiene, la corrección se descarta sin trabar la cola (ver vaciarCola).
+    enviar('editarSerie', reg);
     render();
   },
   panel: (el) => { UI.panel = { tipo: el.dataset.t, i: Number(el.dataset.i), escala: 0 }; render(); },
@@ -896,6 +931,7 @@ document.addEventListener('click', (ev) => {
 document.addEventListener('input', (ev) => {
   const el = ev.target;
   if (el.dataset && el.dataset.in) se_entrada[el.dataset.id][el.dataset.in] = el.value;
+  if (el.dataset && el.dataset.ed && UI.edSerie) UI.edSerie[el.dataset.ed] = el.value;
 });
 document.addEventListener('change', (ev) => {
   const el = ev.target;
