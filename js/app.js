@@ -389,17 +389,16 @@ function vHoy() {
   }
   const hoyDia = DIAS_SEMANA[new Date().getDay()];
   const cardioHoy = cardioDe(pl, hoyDia);
-  const cardioNota = esHoy && cardioHoy.length ? cardioHoy.map(c => `<p class="cardio-nota"><b>Cardio:</b> ${cardioLinea(c)}</p>`).join('') : '';
+  const cardioNota = esHoy && cardioHoy.length ? `<div class="cardio-hoy"><span class="ceja">Hoy también toca cardio</span>${cardioHoy.map(c => `<p><b>${esc(cardioNom(c))}</b> · ${cardioDetalle(c)}</p>`).join('')}</div>` : '';
   const sinFuerzaHoy = ent && !esHoy;
   const bloqueHoy = !sinFuerzaHoy ? '' : cardioHoy.length
     ? `<div class="cardio-hoy"><span class="ceja">Hoy toca cardio</span>${cardioHoy.map(c => `<p><b>${esc(cardioNom(c))}</b> · ${cardioDetalle(c)}</p>`).join('')}</div>`
     : '<p class="descanso">Día de descanso</p>';
-  return saludo() + bloqueHoy + `<div class="hero"><span class="ceja">${ceja}</span>
+  return saludo() + bloqueHoy + cardioNota + `<div class="hero"><span class="ceja">${ceja}</span>
     <h2>${esc(sinDia(s))}</h2>
     <div class="hero-meta"><span><b>${s.ejercicios.length}</b> ejercicios</span><span><b>${totalSeries}</b> series</span>${s.duracionMin ? `<span><b>~${s.duracionMin}</b> min</span>` : ''}</div>
     ${curso}<button class="b principal" data-acc="empezar">${ic(S.sesion ? 'ir' : 'pesa')}${S.sesion ? 'Continuar sesión' : 'Empezar sesión'}</button>
     <ul class="ejs">${filas}</ul></div>
-    ${cardioNota}
     ${ent ? '' : '<p class="suave" style="margin:0 2px">Plan automático: todavía no hay plan del entrenador para vos.</p>'}
     ${respuestasSinLeer() ? `<button class="b" data-acc="ir" data-v="buzon">${ic('enviar')}Tenés ${respuestasSinLeer()} respuesta(s) nueva(s) del entrenador</button>` : ''}
     ${resumenSemana(pl)}
@@ -416,6 +415,7 @@ function vSesion() {
   return `<div class="sesion-cab"><span class="ceja">En curso · desde las ${desde}</span><h2>${esc(se.nombre)}</h2>
     <div class="progreso-ses"><div class="barra"><div style="width:${Math.min(100, hechas / tot * 100)}%"></div></div><span><b>${hechas}</b> de ${tot} series</span></div></div>
     ${cards}
+    ${cardioDe(plan(), DIAS_SEMANA[new Date().getDay()]).map(bloqueCardio).join('')}
     ${UI.panel && UI.panel.tipo === 'fin' ? panelFin() : '<button class="b principal" data-acc="finalizar">Terminar sesión</button>'}`;
 }
 
@@ -647,7 +647,6 @@ function diasSoloCardio(lista) {
 
 function vEntrenador() {
   const p = plan();
-  const resp = S.buzon.filter(b => b.respuesta);
   const ent = p.fuente === 'entrenador';
   const plegable = (titulo, cuerpo, extra = '') => `<details class="plegable ${extra}"><summary><span>${titulo}</span>${ic('abajo')}</summary>${cuerpo}</details>`;
   const hoyDia = DIAS_SEMANA[new Date().getDay()];
@@ -666,10 +665,8 @@ function vEntrenador() {
     <p class="suave" style="margin:0">${ent ? 'Armado por tu entrenador. Cada ejercicio tiene su motivo: tocá «Por qué» para leerlo.' : 'Todavía no hay plan del entrenador para vos: este es el plan base según tu perfil.'} Se ajusta con tus datos reales.</p>
     ${ent && p.notas.length ? `<div style="margin-top:12px">${plegable(`Criterio del plan · ${p.notas.length}`, `<ul class="notas">${p.notas.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`)}</div>` : ''}</div>
     ${p.avisos.length ? `<div class="info">${p.avisos.map(esc).join('<br>')}</div>` : ''}
-    ${ent && p.aValidar.length ? formValidar(p.aValidar) : ''}
     ${tarjetasDias}
-    <div class="seccion-tit"><h3>Respuestas del entrenador</h3></div>
-    ${resp.length ? `<div class="hilo">${resp.map(b => `<div class="burbuja yo">${esc(b.texto)}</div><div class="burbuja ent"><span class="quien">Entrenador</span>${esc(b.respuesta)}</div>`).join('')}</div>` : '<p class="suave" style="margin:0 2px">Sin respuestas todavía. Escribile desde el Buzón.</p>'}`;
+`;
 }
 
 // Consulta de otro usuario, solo lectura: usuario, estado y el texto que escribió.
@@ -680,7 +677,9 @@ function hiloAjeno(b) {
 function vBuzon() {
   const l = [...S.buzon]; // cronológico: la más vieja arriba, la más nueva abajo
   const aj = consultasAjenas();
-  return (aj.length ? `<div class="seccion-tit"><h3>Consultas sin responder (${aj.length})</h3></div>${[...aj].reverse().map(hiloAjeno).join('')}` : '')
+  const p = plan();
+  const fv = p.fuente === 'entrenador' && p.aValidar.length ? formValidar(p.aValidar) : '';
+  return fv + (aj.length ? `<div class="seccion-tit"><h3>Consultas sin responder (${aj.length})</h3></div>${[...aj].reverse().map(hiloAjeno).join('')}` : '')
     + (l.length ? '' : '<p class="suave" style="margin:0 2px">Todavía no hay mensajes. Las respuestas del entrenador aparecen acá.</p>')
     + l.map(b => hiloBuzon(b, mayusc(b.tipo))).join('')
     + `<div class="redactar chat-redactar">
