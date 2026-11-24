@@ -209,7 +209,7 @@ function indiceSesion(p) {
   }
   return 0;
 }
-// Día del plan elegido para hoy (retomar uno perdido o cambiar de día). Vale solo el día en que se eligió.
+// Día del plan elegido para hoy (por ejemplo, el que se salteó). Vale solo el día en que se eligió.
 function eleccionHoy() { const e = S.eleccion; return e && e.fecha === fechaLocal(new Date()) ? e.dia : null; }
 function sesionDelDia() {
   const p = plan();
@@ -217,36 +217,13 @@ function sesionDelDia() {
   const el = p.fuente === 'entrenador' ? eleccionHoy() : null;
   return (el && p.sesiones.find(x => x.dia === el)) || p.sesiones[indiceSesion(p)];
 }
-// El último día de fuerza del plan antes de hoy (en esta semana), si quedó sin hacer.
-function diaPerdido(p) {
-  if (p.fuente !== 'entrenador') return null;
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
-  const deLaSemana = S.sesiones.filter(s => new Date(s.fecha) >= lunes);
-  if (deLaSemana.some(s => fechaLocal(new Date(s.fecha)) === fechaLocal(hoy))) return null; // hoy ya entrenó
-  const hechos = new Set(deLaSemana.map(s => s.nombre));
-  for (let k = 1; k <= 6; k++) {
-    const d = new Date(hoy); d.setDate(hoy.getDate() - k);
-    if (d < lunes) break;
-    const s = p.sesiones.find(x => x.dia === DIAS_SEMANA[d.getDay()]);
-    if (s) return hechos.has(s.nombre) ? null : s;
-  }
-  return null;
-}
-// Tarjeta para elegir qué día del plan hacer hoy: retomar el perdido o seguir, y cambiar a cualquier día.
+// Opción para hacer hoy otro día del plan.
 function eleccionDia(pl, s) {
   if (pl.fuente !== 'entrenador') return '';
   if (S.sesion && S.series.some(x => x.sesion_id === S.sesion.id)) return '';
-  const normal = pl.sesiones[indiceSesion(pl)];
-  const perdido = !eleccionHoy() ? diaPerdido(pl) : null;
-  const aviso = perdido && perdido.dia !== normal.dia
-    ? `<div class="tarjeta eleccion"><span class="ceja">Día sin hacer</span>
-      <p style="margin:4px 0 12px">No hiciste el <b>${esc(perdido.dia.toLowerCase())}</b>: ${esc(sinDia(perdido))}. ¿Qué hacés hoy?</p>
-      <div class="fila"><button class="b principal" data-acc="elegirDia" data-dia="${esc(perdido.dia)}">Retomar el ${esc(perdido.dia.toLowerCase())}</button>
-      <button class="b" data-acc="elegirDia" data-dia="${esc(normal.dia)}">Seguir con el ${esc(normal.dia.toLowerCase())}</button></div></div>` : '';
   const otros = pl.sesiones.filter(x => x.dia !== s.dia).map(x => `<button class="b" data-acc="elegirDia" data-dia="${esc(x.dia)}">${esc(x.dia)} · ${esc(sinDia(x))}</button>`).join('');
   const cambiar = otros ? `<details class="plegable cambiar-dia"><summary><span>Hacer otro día del plan</span>${ic('abajo')}</summary><div class="otros-dias">${otros}</div></details>` : '';
-  return { aviso, cambiar };
+  return { aviso: '', cambiar };
 }
 // Cardio del plan (datos de planes.js): por día, y texto corto.
 function cardioDe(pl, dia) { return pl.fuente === 'entrenador' ? (pl.cardio || []).filter(c => c.dia === dia) : []; }
