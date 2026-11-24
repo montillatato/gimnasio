@@ -19,7 +19,7 @@ const ej_ = Object.fromEntries(CATALOGO.map(e => [e.id, e]));
 
 let S = {
   usuario: 'USR-001', perfil: { ...PERFIL_BASE }, sesiones: [], series: [], comidas: [], evaluaciones: [],
-  buzon: [], buzonOtros: [], cola: [], alertas: [], sesion: null, vista: 'hoy', previa: 'hoy', ejId: null, enviando: false
+  buzon: [], buzonOtros: [], cola: [], alertas: [], sesion: null, eleccion: null, vista: 'hoy', previa: 'hoy', ejId: null, enviando: false
 };
 let UI = { edSerie: null, panel: null, activo: 0, resultadoComida: null, ejProgreso: null, msg: '' };
 let temp = { restante: 0, total: 0, id: null };
@@ -209,10 +209,44 @@ function indiceSesion(p) {
   }
   return 0;
 }
+// Día del plan elegido para hoy (retomar uno perdido o cambiar de día). Vale solo el día en que se eligió.
+function eleccionHoy() { const e = S.eleccion; return e && e.fecha === fechaLocal(new Date()) ? e.dia : null; }
 function sesionDelDia() {
   const p = plan();
   if (!p.sesiones.length) return null;
-  return p.sesiones[indiceSesion(p)];
+  const el = p.fuente === 'entrenador' ? eleccionHoy() : null;
+  return (el && p.sesiones.find(x => x.dia === el)) || p.sesiones[indiceSesion(p)];
+}
+// El último día de fuerza del plan antes de hoy (en esta semana), si quedó sin hacer.
+function diaPerdido(p) {
+  if (p.fuente !== 'entrenador') return null;
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
+  const deLaSemana = S.sesiones.filter(s => new Date(s.fecha) >= lunes);
+  if (deLaSemana.some(s => fechaLocal(new Date(s.fecha)) === fechaLocal(hoy))) return null; // hoy ya entrenó
+  const hechos = new Set(deLaSemana.map(s => s.nombre));
+  for (let k = 1; k <= 6; k++) {
+    const d = new Date(hoy); d.setDate(hoy.getDate() - k);
+    if (d < lunes) break;
+    const s = p.sesiones.find(x => x.dia === DIAS_SEMANA[d.getDay()]);
+    if (s) return hechos.has(s.nombre) ? null : s;
+  }
+  return null;
+}
+// Tarjeta para elegir qué día del plan hacer hoy: retomar el perdido o seguir, y cambiar a cualquier día.
+function eleccionDia(pl, s) {
+  if (pl.fuente !== 'entrenador') return '';
+  if (S.sesion && S.series.some(x => x.sesion_id === S.sesion.id)) return '';
+  const normal = pl.sesiones[indiceSesion(pl)];
+  const perdido = !eleccionHoy() ? diaPerdido(pl) : null;
+  const aviso = perdido && perdido.dia !== normal.dia
+    ? `<div class="tarjeta eleccion"><span class="ceja">Día sin hacer</span>
+      <p style="margin:4px 0 12px">No hiciste el <b>${esc(perdido.dia.toLowerCase())}</b>: ${esc(sinDia(perdido))}. ¿Qué hacés hoy?</p>
+      <div class="fila"><button class="b principal" data-acc="elegirDia" data-dia="${esc(perdido.dia)}">Retomar el ${esc(perdido.dia.toLowerCase())}</button>
+      <button class="b" data-acc="elegirDia" data-dia="${esc(normal.dia)}">Seguir con el ${esc(normal.dia.toLowerCase())}</button></div></div>` : '';
+  const otros = pl.sesiones.filter(x => x.dia !== s.dia).map(x => `<button class="b" data-acc="elegirDia" data-dia="${esc(x.dia)}">${esc(x.dia)} · ${esc(sinDia(x))}</button>`).join('');
+  const cambiar = otros ? `<details class="plegable cambiar-dia"><summary><span>Hacer otro día del plan</span>${ic('abajo')}</summary><div class="otros-dias">${otros}</div></details>` : '';
+  return { aviso, cambiar };
 }
 // Cardio del plan (datos de planes.js): por día, y texto corto.
 function cardioDe(pl, dia) { return pl.fuente === 'entrenador' ? (pl.cardio || []).filter(c => c.dia === dia) : []; }
@@ -377,7 +411,8 @@ function vHoy() {
   const ult = S.sesiones.slice(-1)[0];
   const pl = plan();
   const ent = pl.fuente === 'entrenador';
-  const esHoy = s.dia === DIAS_SEMANA[new Date().getDay()];
+  const esHoy = s.dia === DIAS_SEMANA[new Date().getDay()] || s.dia === eleccionHoy();
+  const ed = eleccionDia(pl, s) || { aviso: '', cambiar: '' };
   const ceja = ent ? `${esHoy ? 'Hoy' : 'Próxima'} · ${esc(s.dia)}${pl.estado !== 'definitivo' ? `<span class="hero-chip">${esc(pl.estado)}</span>` : ''}`
     : `Sesión ${indiceSesion(pl) + 1} de ${pl.sesiones.length}<span class="hero-chip">plan automático</span>`;
   const totalSeries = s.ejercicios.reduce((a, e) => a + Number(e.series || 0), 0);
@@ -388,17 +423,17 @@ function vHoy() {
     curso = `<div class="en-curso"><span>En curso</span><div class="barra"><div style="width:${Math.min(100, hechas / tot * 100)}%"></div></div><span class="n">${hechas}/${tot}</span></div>`;
   }
   const hoyDia = DIAS_SEMANA[new Date().getDay()];
-  const cardioHoy = cardioDe(pl, hoyDia);
+  const cardioHoy = cardioDe(pl, eleccionHoy() || hoyDia);
   const cardioNota = esHoy && cardioHoy.length ? `<div class="cardio-hoy"><span class="ceja">Hoy también toca cardio</span>${cardioHoy.map(c => `<p><b>${esc(cardioNom(c))}</b> · ${cardioDetalle(c)}</p>`).join('')}</div>` : '';
   const sinFuerzaHoy = ent && !esHoy;
   const bloqueHoy = !sinFuerzaHoy ? '' : cardioHoy.length
     ? `<div class="cardio-hoy"><span class="ceja">Hoy toca cardio</span>${cardioHoy.map(c => `<p><b>${esc(cardioNom(c))}</b> · ${cardioDetalle(c)}</p>`).join('')}</div>`
     : '<p class="descanso">Día de descanso</p>';
-  return saludo() + bloqueHoy + cardioNota + `<div class="hero"><span class="ceja">${ceja}</span>
+  return saludo() + ed.aviso + bloqueHoy + cardioNota + `<div class="hero"><span class="ceja">${ceja}</span>
     <h2>${esc(sinDia(s))}</h2>
     <div class="hero-meta"><span><b>${s.ejercicios.length}</b> ejercicios</span><span><b>${totalSeries}</b> series</span>${s.duracionMin ? `<span><b>~${s.duracionMin}</b> min</span>` : ''}</div>
     ${curso}<button class="b principal" data-acc="empezar">${ic(S.sesion ? 'ir' : 'pesa')}${S.sesion ? 'Continuar sesión' : 'Empezar sesión'}</button>
-    <ul class="ejs">${filas}</ul></div>
+    <ul class="ejs">${filas}</ul>${ed.cambiar}</div>
     ${ent ? '' : '<p class="suave" style="margin:0 2px">Plan automático: todavía no hay plan del entrenador para vos.</p>'}
     ${respuestasSinLeer() ? `<button class="b" data-acc="ir" data-v="buzon">${ic('enviar')}Tenés ${respuestasSinLeer()} respuesta(s) nueva(s) del entrenador</button>` : ''}
     ${resumenSemana(pl)}
@@ -415,7 +450,7 @@ function vSesion() {
   return `<div class="sesion-cab"><span class="ceja">En curso · desde las ${desde}</span><h2>${esc(se.nombre)}</h2>
     <div class="progreso-ses"><div class="barra"><div style="width:${Math.min(100, hechas / tot * 100)}%"></div></div><span><b>${hechas}</b> de ${tot} series</span></div></div>
     ${cards}
-    ${cardioDe(plan(), DIAS_SEMANA[new Date().getDay()]).map(bloqueCardio).join('')}
+    ${cardioDe(plan(), se.dia || DIAS_SEMANA[new Date().getDay()]).map(bloqueCardio).join('')}
     ${UI.panel && UI.panel.tipo === 'fin' ? panelFin() : '<button class="b principal" data-acc="finalizar">Terminar sesión</button>'}`;
 }
 
@@ -781,10 +816,16 @@ function descargarCSV() {
 const ACC = {
   ir: (el) => ir(el.dataset.v, !!el.dataset.volver),
   verEj: (el) => { S.ejId = el.dataset.id; ir('ejercicio'); },
+  elegirDia: (el) => {
+    if (S.sesion && S.series.some(x => x.sesion_id === S.sesion.id)) { UI.msg = 'Ya cargaste series en la sesión en curso: terminala antes de cambiar de día.'; render(); return; }
+    S.sesion = null;
+    S.eleccion = { fecha: fechaLocal(new Date()), dia: el.dataset.dia };
+    window.scrollTo(0, 0); render();
+  },
   empezar: () => {
     if (!S.sesion) {
       const s = sesionDelDia();
-      S.sesion = { id: 'S' + Date.now(), inicio: ahora(), nombre: s.nombre, ejercicios: JSON.parse(JSON.stringify(s.ejercicios)) };
+      S.sesion = { id: 'S' + Date.now(), inicio: ahora(), nombre: s.nombre, dia: s.dia, ejercicios: JSON.parse(JSON.stringify(s.ejercicios)) };
       UI.activo = 0;
     }
     ir('sesion');
